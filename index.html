@@ -253,6 +253,26 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
 .modal ul { margin: 0 0 0 18px; color: var(--muted); display: grid; gap: 3px; }
 .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
+/* ---------- video tutorial ---------- */
+.vid-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
+.vid-tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line2); border-radius: 12px; background: var(--panel); }
+.vid-tabs button { border: 0; background: none; color: var(--muted); font: 600 .86rem var(--body); padding: 8px 13px; border-radius: 9px; cursor: pointer; min-height: 38px; }
+.vid-tabs button[aria-selected="true"] { background: var(--cyan-soft); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(56,215,245,.45); }
+.vid-player { background: #000; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; place-items: center; }
+.vid-player video { display: block; width: 100%; height: auto; max-height: 76vh; background: #000; }
+.vid-player.tall video { width: auto; max-width: 100%; }
+.vid-now { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.vid-now .grow { flex: 1; }
+.chapters { display: grid; gap: 6px; max-height: 76vh; overflow-y: auto; padding-right: 4px; }
+.chap { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: #0a1222; cursor: pointer; transition: border-color .15s; }
+.chap:hover { border-color: #2a6f8f; }
+.chap.now { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(56,215,245,.25); background: rgba(56,215,245,.06); }
+.chap .tm { font: 600 .8rem var(--mono); color: var(--cyan); font-variant-numeric: tabular-nums; }
+.chap .t { font-weight: 600; line-height: 1.25; }
+.chap .s { font-size: .82rem; color: var(--muted); line-height: 1.35; }
+.chap .go3d { white-space: nowrap; }
+@media (max-width: 1000px) { .vid-layout { grid-template-columns: 1fr; } .chapters { max-height: none; } }
+
 /* ---------- phone UI (built separately: tab bar, sheets, full-height 3D) ---------- */
 .tabbar, .sheet-back, .sheet-handle, .phone-only { display: none; }
 @media (hover: none) { [data-tip]:hover::after, [data-tip]:focus-visible::after { display: none; } }
@@ -289,7 +309,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   h1 { font-size: 1.6rem; }
 
   /* bottom tab bar + More sheet */
-  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; height: var(--tabh); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: rgba(7,12,23,.98); border-top: 1px solid var(--line); }
+  .tabbar { display: grid; grid-template-columns: repeat(6, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; height: var(--tabh); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: rgba(7,12,23,.98); border-top: 1px solid var(--line); }
   .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; border: 0; background: none; color: var(--muted); font-size: .68rem; font-weight: 600; cursor: pointer; }
   .tabbar svg { width: 23px; height: 23px; }
   .tabbar button.on { color: var(--cyan); }
@@ -365,6 +385,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       <button data-view="dashboard" data-tip="Overview and progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></button>
       <button data-view="steps" data-tip="All build steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.3"/><circle cx="4" cy="12" r="1.3"/><circle cx="4" cy="18" r="1.3"/></svg><span>Build Robot</span></button>
       <button data-view="build" data-tip="Interactive 3D builder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D Tutorial</span></button>
+      <button data-view="video" data-tip="The whole build as a 3D film"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.2l5 2.8-5 2.8z"/></svg><span>Video Tutorial</span></button>
       <button data-view="wiring" data-tip="Every connection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Wiring</span></button>
       <div class="sec">Learn</div>
       <button data-view="components" data-tip="Every part, explained"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Components</span></button>
@@ -392,6 +413,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
           <p class="lede">A four-wheel car that drives by itself. Ultrasonic “eyes” on a servo “neck” watch what is ahead and turn to check left and right, and an Arduino tells an L298N motor driver where to drive. Build it step by step in 3D, then learn how every part works.</p>
           <div class="hero-actions">
             <button class="btn primary" id="dashContinue" type="button" data-tip="Open the 3D builder at your current step">▶ <span id="dashContinueText">Start Building</span></button>
+            <button class="btn" type="button" data-go="video" data-tip="Watch the whole build as a 3D film">▶ Watch the video</button>
             <button class="btn" type="button" data-go="wiring" data-tip="See every connection">View Wiring</button>
             <button class="btn" type="button" data-go="components" data-tip="What every part does">Learn the parts</button>
           </div>
@@ -487,6 +509,20 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       </div>
     </section>
 
+    <!-- ===================== VIDEO TUTORIAL ===================== -->
+    <section class="view" id="view-video">
+      <div class="view-head"><div><div class="eyebrow">Video Tutorial · 2:45</div><h1>Watch the robot being built</h1><p class="lede">One continuous 3D film, from the empty chassis to the robot driving. Jump to any chapter, then open that part in the 3D Tutorial to build it yourself.</p></div>
+        <div class="vid-tabs" role="tablist" aria-label="Video format"><button role="tab" id="vidWide" aria-selected="true" type="button">Widescreen</button><button role="tab" id="vidTall" aria-selected="false" type="button">Phone (tall)</button></div></div>
+      <div class="vid-layout">
+        <div>
+          <div class="vid-player" id="vidPlayer"><video id="vidEl" controls playsinline preload="metadata" poster="poster.jpg" src="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4"></video></div>
+          <div class="vid-now"><span class="chip cy" id="vidNow">Chapter 1 · The empty chassis</span><span class="grow"></span><button class="btn sm" type="button" id="vidTo3d">Build this part in 3D →</button><a class="btn sm ghost" id="vidDl" href="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4" download>Download (≈205 MB)</a></div>
+          <p class="note" style="margin-top:10px">No sound: it is made for your own voice-over. If it does not start, use Download.</p>
+        </div>
+        <div class="card" style="padding:12px"><h3 style="margin:2px 4px 10px">Chapters</h3><div class="chapters" id="vidChapters"></div></div>
+      </div>
+    </section>
+
     <!-- ===================== WIRING ===================== -->
     <section class="view" id="view-wiring">
       <div class="view-head"><div><div class="eyebrow">Wiring</div><h1>Every connection, and why</h1><p class="lede">Wire colours match the 3D builder. Red is always + power, black is always GND (ground).</p></div><button class="btn" type="button" id="wiringTo3d">Open in 3D</button></div>
@@ -534,7 +570,8 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   <nav class="tabbar" id="tabbar" aria-label="Sections">
     <button type="button" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Home</span></button>
     <button type="button" data-view="steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.3"/><circle cx="4" cy="12" r="1.3"/><circle cx="4" cy="18" r="1.3"/></svg><span>Steps</span></button>
-    <button type="button" data-view="build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D Build</span></button>
+    <button type="button" data-view="build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D</span></button>
+    <button type="button" data-view="video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.2l5 2.8-5 2.8z"/></svg><span>Video</span></button>
     <button type="button" data-view="wiring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Wiring</span></button>
     <button type="button" id="moreBtn" aria-haspopup="dialog" aria-controls="moreSheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
   </nav>
@@ -584,7 +621,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   function phaseStats(ph) { var list = STEPS.filter(function (s) { return s.phase === ph; }); return { total: list.length, done: list.filter(function (s) { return state.done[s.id]; }).length }; }
 
   // ------------------------------------------------------------------ navigation
-  var VIEWS = ['dashboard', 'steps', 'build', 'wiring', 'components', 'learn', 'code', 'exam', 'progress'];
+  var VIEWS = ['dashboard', 'steps', 'build', 'video', 'wiring', 'components', 'learn', 'code', 'exam', 'progress'];
   var engine = null, currentView = null;
   function show(view) {
     if (VIEWS.indexOf(view) < 0) view = 'dashboard';
@@ -598,6 +635,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
     $('app').classList.remove('drawer');
     if (view === 'build') ensureEngine(); else if (engine) engine.setActive(false);
     if (view === 'build' && engine) engine.setActive(true);
+    if (view !== 'video') { var vv = $('vidEl'); if (vv && !vv.paused) vv.pause(); }
     if (view === 'dashboard') renderDashboard();
     if (view === 'steps') renderSteps();
     if (view === 'progress') renderProgress();
@@ -609,7 +647,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   $('collapse').addEventListener('click', function () { $('app').classList.toggle('collapsed'); this.textContent = $('app').classList.contains('collapsed') ? '⇥' : '⇤'; setTimeout(function () { engine && engine.resize(); }, 50); });
   // phone UI: tab bar, More sheet, page title
   var PHONE = window.matchMedia ? matchMedia('(max-width: 760px), (max-height: 520px) and (pointer: coarse)') : { matches: false };
-  var TITLES = { dashboard: 'Dashboard', steps: 'Build Robot', build: '3D Tutorial', wiring: 'Wiring', components: 'Components', learn: 'Learn Electronics', code: 'Code', exam: 'Quick Revision', progress: 'Progress' };
+  var TITLES = { dashboard: 'Dashboard', steps: 'Build Robot', build: '3D Tutorial', video: 'Video Tutorial', wiring: 'Wiring', components: 'Components', learn: 'Learn Electronics', code: 'Code', exam: 'Quick Revision', progress: 'Progress' };
   var MORE = ['components', 'learn', 'code', 'exam', 'progress'];
   document.querySelectorAll('#tabbar [data-view], #moreSheet [data-view]').forEach(function (b) { b.addEventListener('click', function () { closeMore(); show(b.getAttribute('data-view')); }); });
   function openMore() { $('moreSheet').classList.add('on'); }
@@ -617,6 +655,60 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   $('moreBtn').addEventListener('click', function () { if ($('moreSheet').classList.contains('on')) closeMore(); else openMore(); });
   $('moreSheet').addEventListener('click', function (e) { if (e.target === this) closeMore(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMore(); });
+
+  // ------------------------------------------------------------------ video tutorial
+  var VID_BASE = 'https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/';
+  var VID = { wide: ['robot_assembly.mp4', 'poster.jpg', '≈205 MB'], tall: ['robot_assembly_vertical.mp4', 'poster_vertical.jpg', '≈200 MB'] };
+  // [start second, title, what happens, matching 3D step]
+  var CHAPTERS = [
+    [0, 'The empty chassis', 'A bare wooden plate.', 1],
+    [5, 'Four motors', 'TT gear motors go on under the plate.', 1],
+    [12, 'Four wheels', 'Pushed onto the motor shafts.', 1],
+    [23, 'L298N motor driver', 'The board that drives the motors.', 4],
+    [31, 'Battery and switch', 'Two 18650 cells and the on/off switch.', 16],
+    [36, 'Arduino Uno', 'The brain.', 21],
+    [41, 'Breadboard', 'The + and − power rows.', 22],
+    [46, 'MG90S servo', 'The neck that turns the eyes.', 33],
+    [50, 'HC-SR04 on the servo', 'The eyes go on, then look right and left.', 37],
+    [55, 'Jumper caps off', 'ENA and ENB, so the Arduino sets the speed.', 15],
+    [60, 'Motor wires', 'Left motors to OUT1/OUT2, right to OUT3/OUT4.', 6],
+    [80, 'Battery wires', 'Black to GND, red through the switch to 12V.', 17],
+    [90, 'Power rails', '5 V and GND for everything.', 23],
+    [102, 'Control wires', 'Arduino pins 5–13 to the L298N.', 27],
+    [120, 'Servo and sensor wires', 'Servo to pin 3, Trig to 9, Echo to 10.', 34],
+    [141, 'Ready to drive', 'The finished robot drives off.', 45]
+  ];
+  function fmtT(s) { return Math.floor(s / 60) + ':' + ('0' + Math.floor(s % 60)).slice(-2); }
+  function chapterAt(s) { var c = 0; for (var i = 0; i < CHAPTERS.length; i++) if (s >= CHAPTERS[i][0]) c = i; return c; }
+  $('vidChapters').innerHTML = CHAPTERS.map(function (c, i) { return '<div class="chap" role="button" tabindex="0" data-chap="' + i + '"><span class="tm">' + fmtT(c[0]) + '</span><span><span class="t">' + esc(c[1]) + '</span><br><span class="s">' + esc(c[2]) + '</span></span><button class="btn sm ghost go3d" type="button" data-go3d="' + c[3] + '" aria-label="Build ' + esc(c[1]) + ' in 3D">3D →</button></div>'; }).join('');
+  var curChap = -1;
+  function markChapter(i) {
+    if (i === curChap) return; curChap = i;
+    Array.prototype.forEach.call($('vidChapters').children, function (el, k) { el.classList.toggle('now', k === i); });
+    $('vidNow').textContent = 'Chapter ' + (i + 1) + ' · ' + CHAPTERS[i][1];
+  }
+  function seekChapter(i) { var v = $('vidEl'); markChapter(i); try { v.currentTime = CHAPTERS[i][0] + (i ? 0.2 : 0); var pr = v.play(); if (pr && pr.catch) pr.catch(function () { }); } catch (e) { } }
+  $('vidChapters').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-go3d]'); if (b) { e.stopPropagation(); openStep(+b.dataset.go3d); return; }
+    var c = e.target.closest('[data-chap]'); if (c) seekChapter(+c.dataset.chap);
+  });
+  $('vidChapters').addEventListener('keydown', function (e) { var c = e.target.closest('[data-chap]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seekChapter(+c.dataset.chap); } });
+  $('vidEl').addEventListener('timeupdate', function () { markChapter(chapterAt(this.currentTime)); });
+  $('vidTo3d').addEventListener('click', function () { openStep(CHAPTERS[Math.max(0, curChap)][3]); });
+  function vidFormat(k) {
+    var v = $('vidEl'), at = v.currentTime || 0, wasPlaying = !v.paused;
+    $('vidWide').setAttribute('aria-selected', k === 'wide'); $('vidTall').setAttribute('aria-selected', k === 'tall');
+    $('vidPlayer').classList.toggle('tall', k === 'tall');
+    if (v.getAttribute('src') !== VID_BASE + VID[k][0]) {
+      v.setAttribute('poster', VID[k][1]); v.src = VID_BASE + VID[k][0];
+      if (at > 0) v.addEventListener('loadedmetadata', function once() { v.removeEventListener('loadedmetadata', once); v.currentTime = at; if (wasPlaying) v.play().catch(function () { }); });
+    }
+    $('vidDl').href = VID_BASE + VID[k][0]; $('vidDl').textContent = 'Download (' + VID[k][2] + ')';
+  }
+  $('vidWide').addEventListener('click', function () { vidFormat('wide'); });
+  $('vidTall').addEventListener('click', function () { vidFormat('tall'); });
+  if (window.matchMedia && matchMedia('(max-width: 600px) and (orientation: portrait)').matches) vidFormat('tall');
+  markChapter(0);
 
   function openStep(n) { state.cur = n; save(); show('build'); if (engine) engine.go(n); }
 
@@ -756,6 +848,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   // ------------------------------------------------------------------ dashboard
   var MODULES = [
     ['build', '3D Tutorial', 'Build the robot one action at a time with a glowing guide.', '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>'],
+    ['video', 'Video Tutorial', 'The whole build as a 3D film, chapter by chapter.', '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.2l5 2.8-5 2.8z"/>'],
     ['wiring', 'Wiring', 'The full diagram, every wire, and why it goes there.', '<path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/>'],
     ['components', 'Components', 'What the Arduino, L298N, motors and sensors do.', '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4"/>'],
     ['learn', 'Learn Electronics', 'Voltage, ground, PWM, H-bridges, sensors.', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'],
