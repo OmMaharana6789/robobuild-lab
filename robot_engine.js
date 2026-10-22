@@ -1,6 +1,6 @@
 /* =====================================================================
    ROBOT ENGINE  -  the 3D model and step-by-step build logic for the
-   4WD sensor robot (Arduino Uno + L298N + 4 TT motors + HC-SR04 + 2 KY-032).
+   4WD sensor robot (Arduino Uno + L298N + 4 TT motors + HC-SR04 on an MG90S servo).
    Shared by the learning app (index.html) and the cinematic assembly video
    (WN-Arduino/Explanation video & Script/source/cinematic_assembly.html).
    Needs three.js r128 + OrbitControls loaded first.
@@ -51,30 +51,28 @@
     { phase: 'Control wires', title: 'Blue: pin 12 to IN3', kid: 'Take a blue wire.', doNow: 'Pin end in Arduino 12. Socket end on IN3.', grown: 'Uno <code>D12</code> → L298N <code>IN3</code>.', wires: [['U:12', 'L:IN3', 'BLUE']], why: 'IN3 and IN4 choose the direction of the right motors.', learn: 'l298n', focus: [1, 4.5, -1], dist: 12 },
     { phase: 'Control wires', title: 'Purple: pin 13 to IN4', kid: 'Take a purple wire.', doNow: 'Pin end in Arduino 13. Socket end on IN4.', grown: 'Uno <code>D13</code> → L298N <code>IN4</code>.', wires: [['U:13', 'L:IN4', 'PURPLE']], why: 'Right side direction, same rule as IN1/IN2.', learn: 'l298n', focus: [1, 4.5, -1], dist: 12 },
     { phase: 'Control wires', title: 'White: pin 6 to ENB', kid: 'Take a white wire.', doNow: 'Pin end in Arduino ~6. Socket end on ENB. The Motor Boss is done!', grown: 'Uno <code>D6</code> → L298N <code>ENB</code> (right speed, PWM).', wires: [['U:6', 'L:ENB', 'WHITE']], why: 'ENB sets the speed of the right side. Different speeds left and right make the robot turn.', learn: 'l298n', focus: [1, 4.5, -1.5], dist: 12 },
+    // ---------------- Neck ----------------
+    { phase: 'Neck (MG90S servo)', title: 'Take the MG90S servo', kid: 'This is the robot’s Neck. It turns the Eyes left and right.', doNow: 'Stand the servo at the very front, in the middle, shaft on top. Screw it down by its two ears.', grown: 'MG90S micro servo (metal gears, 4.8–6 V). It turns to any angle from 0° to 180° that the Arduino asks for. Mount it upright with the output shaft on top, in the middle of the front edge.', parts: ['servo'], learn: 'mg90s', focus: [0, 4.6, -11.3], dist: 9 },
+    { phase: 'Neck (MG90S servo)', title: 'Brown: servo GND to the blue row', kid: 'The servo has 3 coloured wires. Find the brown one.', doNow: 'Brown wire into the blue-line row at number 27.', grown: 'MG90S <code>brown</code> (GND) → − rail column 27. Use a male-to-male jumper in the servo plug if the lead is too short.', wires: [['SV:GND', 'B:-27', 'BROWN']], why: 'Brown is the servo’s ground. It shares ground with the Arduino, so the signal means the same thing to both.', learn: 'mg90s', focus: [-1.5, 4.6, -9.6], dist: 10 },
+    { phase: 'Neck (MG90S servo)', title: 'Red: servo power to the red row', kid: 'Now the red servo wire.', doNow: 'Red wire into the red-line row at number 27.', grown: 'MG90S <code>red</code> (+5 V) → + rail column 27.', wires: [['SV:5V', 'B:+27', 'RED']], why: 'The servo’s little motor runs on 5 V. If the Arduino restarts every time the servo moves, the 5 V supply is too weak: add a 470 µF capacitor across the red and blue rows, or give the servo its own 5 V supply.', learn: 'mg90s', focus: [-1.5, 4.6, -9.6], dist: 10 },
+    { phase: 'Neck (MG90S servo)', title: 'Orange: servo signal to pin 3', kid: 'Last servo wire: the orange one.', doNow: 'Orange wire into Arduino pin ~3.', grown: 'MG90S <code>orange</code> (signal) → Uno <code>D3</code>.', wires: [['SV:SIGNAL', 'U:3', 'ORANGE']], why: 'Every 20 ms the Arduino sends a pulse 0.5–2.5 ms long. The length of the pulse tells the servo which angle to turn to.', learn: 'mg90s', focus: [1.2, 4.8, -8], dist: 12 },
     // ---------------- Eyes ----------------
-    { phase: 'Eyes (HC-SR04)', title: 'Take the HC-SR04', kid: 'These are the robot’s Eyes. They measure how far away things are.', doNow: 'Put the HC-SR04 at the very front, eyes looking forward.', grown: 'HC-SR04 ultrasonic sensor, pins Vcc / Trig / Echo / Gnd toward the robot.', parts: ['eyes'], learn: 'hcsr04', focus: [0, 4.8, -12], dist: 9 },
-    { phase: 'Eyes (HC-SR04)', title: 'Eyes Vcc to the red row', kid: 'Take a red wire with a socket.', doNow: 'Socket on Vcc. Pin end in the red-line row at number 29.', grown: 'HC-SR04 <code>Vcc</code> → + rail column 29.', wires: [['S:VCC', 'B:+29', 'RED']], why: 'Vcc is the sensor’s 5 V power.', learn: 'hcsr04', focus: [-2.5, 4.5, -9.8], dist: 10 },
-    { phase: 'Eyes (HC-SR04)', title: 'Eyes Gnd to the blue row', kid: 'Take a black wire with a socket.', doNow: 'Socket on Gnd. Pin end in the blue-line row at number 29.', grown: 'HC-SR04 <code>Gnd</code> → − rail column 29.', wires: [['S:GND', 'B:-29', 'BLACK']], why: 'Ground completes the sensor’s power circuit.', learn: 'hcsr04', focus: [-2.5, 4.5, -9.8], dist: 10 },
-    { phase: 'Eyes (HC-SR04)', title: 'Light-blue: Trig to pin 9', kid: 'Take a light-blue wire.', doNow: 'Socket on Trig. Pin end in Arduino ~9.', grown: 'HC-SR04 <code>Trig</code> → Uno <code>D9</code>.', wires: [['S:TRIG', 'U:9', 'CYAN']], why: 'The Arduino sends a 10 µs pulse on Trig to say “shout now!”.', learn: 'hcsr04', focus: [1, 4.8, -8], dist: 12 },
-    { phase: 'Eyes (HC-SR04)', title: 'Pink: Echo to pin 10', kid: 'Take a pink wire.', doNow: 'Socket on Echo. Pin end in Arduino ~10.', grown: 'HC-SR04 <code>Echo</code> → Uno <code>D10</code>.', wires: [['S:ECHO', 'U:10', 'PINK']], why: 'Echo stays HIGH as long as the sound takes to come back. Longer time = farther away.', learn: 'hcsr04', focus: [1, 4.8, -8], dist: 12 },
-    // ---------------- Whiskers ----------------
-    { phase: 'Whiskers (IR)', title: 'Take the two KY-032', kid: 'These are the Whiskers. They see things at the front corners.', doNow: 'Put one KY-032 on each front corner, pointing forward.', grown: 'Two KY-032 obstacle modules. Pins GND, VCC, OUT (EN on 4-pin boards: leave unconnected, jumper cap on). Check the printed labels.', parts: ['whiskers'], learn: 'ky032', focus: [0, 3.6, -11], dist: 17 },
-    { phase: 'Whiskers (IR)', title: 'Left VCC to the red row', kid: 'Take a red wire with a socket.', doNow: 'Socket on the left sensor VCC. Pin end in the red-line row at number 26.', grown: 'Left KY-032 <code>VCC</code> → + rail column 26.', wires: [['IL:VCC', 'B:+26', 'RED']], why: 'Powers the left sensor with 5 V.', learn: 'ky032', focus: [-5, 4, -8.2], dist: 8 },
-    { phase: 'Whiskers (IR)', title: 'Left GND to the blue row', kid: 'Take a black wire with a socket.', doNow: 'Socket on the left sensor GND. Pin end in the blue-line row at number 26.', grown: 'Left KY-032 <code>GND</code> → − rail column 26.', wires: [['IL:GND', 'B:-26', 'BLACK']], why: 'Ground for the left sensor.', learn: 'ky032', focus: [-5, 4, -8.2], dist: 8 },
-    { phase: 'Whiskers (IR)', title: 'Brown: left OUT to A0', kid: 'Take a brown wire.', doNow: 'Socket on the left sensor OUT. Pin end in Arduino A0.', grown: 'Left KY-032 <code>OUT</code> → Uno <code>A0</code> (used as a digital input).', wires: [['IL:OUT', 'U:A0', 'BROWN']], why: 'OUT goes LOW when the sensor sees something. The Arduino reads it on A0.', learn: 'ky032', focus: [-1, 4.5, -8], dist: 14 },
-    { phase: 'Whiskers (IR)', title: 'Right VCC to the red row', kid: 'Take a red wire with a socket.', doNow: 'Socket on the right sensor VCC. Pin end in the red-line row at number 27.', grown: 'Right KY-032 <code>VCC</code> → + rail column 27.', wires: [['IR:VCC', 'B:+27', 'RED']], why: 'Powers the right sensor.', learn: 'ky032', focus: [0, 4.5, -8.5], dist: 16 },
-    { phase: 'Whiskers (IR)', title: 'Right GND to the blue row', kid: 'Take a black wire with a socket.', doNow: 'Socket on the right sensor GND. Pin end in the blue-line row at number 27.', grown: 'Right KY-032 <code>GND</code> → − rail column 27.', wires: [['IR:GND', 'B:-27', 'BLACK']], why: 'Ground for the right sensor.', learn: 'ky032', focus: [0, 4.5, -8.5], dist: 16 },
-    { phase: 'Whiskers (IR)', title: 'Grey: right OUT to A1', kid: 'Take a grey wire.', doNow: 'Socket on the right sensor OUT. Pin end in Arduino A1. All wires done!', grown: 'Right KY-032 <code>OUT</code> → Uno <code>A1</code>.', wires: [['IR:OUT', 'U:A1', 'GREY']], why: 'Now the Arduino knows if the obstacle is on the left (A0) or the right (A1), and turns the other way.', learn: 'ky032', focus: [4.5, 4.5, -8.5], dist: 10 },
+    { phase: 'Eyes (HC-SR04)', title: 'Put the Eyes on the Neck', kid: 'These are the robot’s Eyes. They measure how far away things are.', doNow: 'Screw the HC-SR04 bracket onto the servo horn, eyes looking straight forward.', grown: 'HC-SR04 on a small bracket fixed to the MG90S horn, pins Vcc / Trig / Echo / Gnd facing back. At power-on the code turns the servo to 90° (straight ahead). If the eyes are not straight then, move the horn one tooth or change <code>SERVO_CENTER</code>.', parts: ['eyes'], learn: 'hcsr04', focus: [0, 6.6, -11.6], dist: 10 },
+    { phase: 'Eyes (HC-SR04)', title: 'Eyes Vcc to the red row', kid: 'Take a red wire with a socket.', doNow: 'Socket on Vcc. Pin end in the red-line row at number 29.', grown: 'HC-SR04 <code>Vcc</code> → + rail column 29. Leave a little slack so the Neck can turn.', wires: [['S:VCC', 'B:+29', 'RED']], why: 'Vcc is the sensor’s 5 V power.', learn: 'hcsr04', focus: [-2.2, 5.6, -9.8], dist: 11 },
+    { phase: 'Eyes (HC-SR04)', title: 'Eyes Gnd to the blue row', kid: 'Take a black wire with a socket.', doNow: 'Socket on Gnd. Pin end in the blue-line row at number 29.', grown: 'HC-SR04 <code>Gnd</code> → − rail column 29.', wires: [['S:GND', 'B:-29', 'BLACK']], why: 'Ground completes the sensor’s power circuit.', learn: 'hcsr04', focus: [-2.2, 5.6, -9.8], dist: 11 },
+    { phase: 'Eyes (HC-SR04)', title: 'Light-blue: Trig to pin 9', kid: 'Take a light-blue wire.', doNow: 'Socket on Trig. Pin end in Arduino ~9.', grown: 'HC-SR04 <code>Trig</code> → Uno <code>D9</code>.', wires: [['S:TRIG', 'U:9', 'CYAN']], why: 'The Arduino sends a 10 µs pulse on Trig to say “shout now!”.', learn: 'hcsr04', focus: [1, 5.6, -8], dist: 13 },
+    { phase: 'Eyes (HC-SR04)', title: 'Pink: Echo to pin 10', kid: 'Take a pink wire.', doNow: 'Socket on Echo. Pin end in Arduino ~10. All wires done!', grown: 'HC-SR04 <code>Echo</code> → Uno <code>D10</code>.', wires: [['S:ECHO', 'U:10', 'PINK']], why: 'Echo stays HIGH as long as the sound takes to come back. Longer time = farther away.', learn: 'hcsr04', focus: [1, 5.6, -8], dist: 13 },
     // ---------------- Finish ----------------
     { phase: 'Finish', title: 'Check every wire', kid: 'Follow every wire with your finger, from one end to the other.', doNow: 'Check each wire matches this picture. Tug each one gently.', grown: 'Use the Wiring page checklist. No bare copper touching a neighbour; ENA/ENB caps off; battery wires only at the switch and the L298N.', focus: [0, 3, 0], dist: 30 },
-    { phase: 'Finish', title: 'Upload the code', kid: 'Plug the USB cable into the Arduino. Battery switch stays OFF.', doNow: 'A grown-up uploads rc_robot_4wd.ino to the Arduino.', grown: 'Arduino IDE or arduino-cli, board “Arduino Uno”. The robot code waits 3 s after power-on before moving.', glow: ['brain'], learn: 'arduino', focus: [2.75, 4, -4.2], dist: 12 },
-    { phase: 'Finish', title: 'Wheels-in-the-air test', kid: 'Put the robot on a box so the wheels do not touch anything.', doNow: 'Switch ON and wait 3 seconds. All four wheels should spin forward. Hold your hand in front: they stop.', grown: 'Serial Monitor 9600 baud shows the readings; S stops, G goes. A wheel backwards: swap that motor’s two wires. A whole side backwards: set LEFT_REVERSED / RIGHT_REVERSED.', glow: ['body'], learn: 'motor', focus: [0, 2, 0], dist: 24 },
-    { phase: 'Finish', title: 'Let it drive!', kid: 'Unplug the USB. Put the robot on the floor. Switch ON.', doNow: 'Wait 3 seconds. Watch it drive forward and stop in front of things!', grown: 'It slows below 45 cm, and below 22 cm (or when a whisker sees something) it stops. When the way is clear it drives on.', focus: [0, 3, 0], dist: 34, finale: true }
+    { phase: 'Finish', title: 'Upload the code', kid: 'Plug the USB cable into the Arduino. Battery switch stays OFF.', doNow: 'A grown-up uploads rc_robot_4wd.ino to the Arduino.', grown: 'Arduino IDE or arduino-cli, board “Arduino Uno”. The code uses the built-in Servo library. It turns the Eyes to the front, then waits 3 s before moving.', glow: ['brain'], learn: 'arduino', focus: [2.75, 4, -4.2], dist: 12 },
+    { phase: 'Finish', title: 'Wheels-in-the-air test', kid: 'Put the robot on a box so the wheels do not touch anything.', doNow: 'Switch ON. The Eyes turn to the front, and after 3 seconds all four wheels spin forward. Hand in front: it backs up, and the Eyes look right, then left.', grown: 'Serial Monitor 9600 baud shows what it measured and decided; S stops, G goes. A wheel backwards: swap that motor’s two wires. A whole side backwards: set LEFT_REVERSED / RIGHT_REVERSED.', glow: ['body'], learn: 'motor', focus: [0, 2, 0], dist: 24 },
+    { phase: 'Finish', title: 'Let it drive!', kid: 'Unplug the USB. Put the robot on the floor. Switch ON.', doNow: 'Wait 3 seconds. Watch it look around and turn to the free side!', grown: 'It slows below 45 cm. Below 22 cm it stops, backs up, looks right and left with the servo, and turns to the side with more space. If both sides are blocked it turns round.', focus: [0, 3, 0], dist: 34, finale: true }
   ];
   STEPS.forEach(function (s, i) { s.n = i + 1; s.id = 's' + (i + 1); });
 
   // Human names for both ends of each wire (used by the Wiring page)
-  var COMP = { U: 'Arduino', B: 'Breadboard', L: 'L298N', S: 'HC-SR04', IL: 'Left KY-032', IR: 'Right KY-032' };
+  var COMP = { U: 'Arduino', B: 'Breadboard', L: 'L298N', S: 'HC-SR04', SV: 'MG90S servo' };
+  var SERVO_WIRE = { GND: 'brown wire (GND)', '5V': 'red wire (+5 V)', SIGNAL: 'orange wire (signal)' };
   var MOTORN = { LF: 'Front-left motor', LR: 'Back-left motor', RF: 'Front-right motor', RR: 'Back-right motor' };
   function endName(e) {
     if (e === 'BAT+') return ['Battery', '+ (red)'];
@@ -85,7 +83,8 @@
     var k = e.split(':')[0], v = e.split(':')[1];
     if (k === 'U') return ['Arduino', /^\d+$/.test(v) ? 'pin ' + v : v.replace('GND1', 'GND')];
     if (k === 'B') return ['Breadboard', v[0] === '+' ? '+ row (red line), column ' + v.slice(1) : v[0] === '-' ? '− row (blue line), column ' + v.slice(1) : v];
-    return [COMP[k], v === 'VCC' ? 'VCC' : v];
+    if (k === 'SV') return [COMP.SV, SERVO_WIRE[v]];
+    return [COMP[k], v];
   }
   var COLORS = { RED: '#e5383b', BLACK: '#3a3a3a', ORANGE: '#ff8c1a', YELLOW: '#ffd21f', GREEN: '#2fb562', BLUE: '#2f7de1', PURPLE: '#9b51e0', WHITE: '#f2f2f2', CYAN: '#1fc8db', PINK: '#ff5fae', BROWN: '#9a6233', GREY: '#9aa3a8', TEAL: '#12a090' };
   var COLOR_NAMES = { RED: 'red', BLACK: 'black', ORANGE: 'orange', YELLOW: 'yellow', GREEN: 'green', BLUE: 'blue', PURPLE: 'purple', WHITE: 'white', CYAN: 'light-blue', PINK: 'pink', BROWN: 'brown', GREY: 'grey', TEAL: 'sea-green' };
@@ -355,30 +354,40 @@
     // =====================================================================
     //  SENSORS
     // =====================================================================
-    var eyes = part('eyes', 'HC-SR04 (Eyes)', [0, 8.0, -12]);
+    // MG90S servo standing at the front; its shaft is at x = 0, z = NECK_Z. The eyes sit on a
+    // "head" group that pivots on that shaft, so the servo can turn them left and right.
+    var NECK_Z = -11.3, BASE_Y = 3.18;
+    var servo = part('servo', 'MG90S (Neck)', [0, 6.4, -9.6]);
     (function () {
+      var cv = mkCanvas(512, 520), c = cv.getContext('2d'); c.fillStyle = '#161616'; c.fillRect(0, 0, 512, 520);
+      text(c, 'TowerPro', 256, 150, 58, '#d8d8d8'); text(c, 'MG90S', 256, 260, 92, '#ffffff'); text(c, 'METAL GEAR', 256, 360, 44, '#c9a227'); text(c, '9g  4.8–6V', 256, 440, 40, '#aaaaaa');
+      var bx = -0.55;                                                          // body is offset: the shaft sits near one end
+      servo.add(box(2.28, 2.25, 1.22, faces(mat(0x161616), { 5: texMat(cv) }), bx, BASE_Y + 1.125, NECK_Z));
+      servo.add(box(3.3, 0.2, 1.22, 0x161616, bx, BASE_Y + 1.75, NECK_Z));    // mounting ears
+      [-1.45, 1.45].forEach(function (dx) { servo.add(cyl(0.12, 0.24, 0x8a8f94, bx + dx, BASE_Y + 1.88, NECK_Z)); }); // ear screws
+      servo.add(cyl(0.62, 0.42, 0x161616, 0, BASE_Y + 2.46, NECK_Z));          // gear dome
+      servo.add(cyl(0.34, 0.3, 0x161616, -0.75, BASE_Y + 2.4, NECK_Z));
+      servo.add(cyl(0.18, 0.24, 0xc9a227, 0, BASE_Y + 2.78, NECK_Z));          // brass output spline
+      // lead: brown, red, orange, into a black plug lying on the plate behind the servo
+      [['BROWN', -0.12], ['RED', 0], ['ORANGE', 0.12]].forEach(function (w) { servo.add(box(0.1, 0.1, 1.4, COLORS[w[0]], bx - 0.8 + w[1], BASE_Y + 0.15, NECK_Z + 1.3)); });
+      servo.add(box(0.5, 0.26, 0.55, 0x101010, bx - 0.8, BASE_Y + 0.15, NECK_Z + 2.2));
+    })();
+    var eyes = part('eyes', 'HC-SR04 (Eyes)', [0, 10.0, -12]);
+    var head = new THREE.Group(); head.position.set(0, 0, NECK_Z); eyes.add(head);
+    (function () {
+      var Y = 7.25, Z = -0.6;                                                  // board centre, relative to the shaft
       var cv = mkCanvas(1024, 460), c = cv.getContext('2d'); c.fillStyle = '#1f63c2'; c.fillRect(0, 0, 1024, 460);
       text(c, 'HC-SR04', 512, 70, 64, '#fff'); text(c, 'T', 220, 400, 40, '#fff'); text(c, 'R', 804, 400, 40, '#fff');
       var back = mkCanvas(1024, 460), b = back.getContext('2d'); b.fillStyle = '#1f63c2'; b.fillRect(0, 0, 1024, 460);
       ['Gnd', 'Echo', 'Trig', 'Vcc'].forEach(function (s, i) { text(b, s, 512 - 0.381 * 227 + i * 0.254 * 227, 385, 34, '#fff', -Math.PI / 2); });
-      eyes.add(box(4.5, 2.0, 0.16, faces(mat(0x1f63c2), { 5: texMat(cv), 4: texMat(back) }), 0, 4.95, -12.0));
-      eyes.add(cyl(0.8, 1.2, 0xd0d6da, -1.3, 5.0, -12.6, 'z')); eyes.add(cyl(0.8, 1.2, 0xd0d6da, 1.3, 5.0, -12.6, 'z'));
-      eyes.add(cyl(0.55, 1.22, 0x3a3a3a, -1.3, 5.0, -12.6, 'z')); eyes.add(cyl(0.55, 1.22, 0x3a3a3a, 1.3, 5.0, -12.6, 'z'));
-      eyes.add(box(1.4, 0.75, 0.7, 0x777777, 0, 3.55, -12.0));
-      [-0.381, -0.127, 0.127, 0.381].forEach(function (x) { eyes.add(box(0.064, 0.064, 0.6, 0xd4af37, x, 4.1, -11.65)); });
+      head.add(box(1.9, 0.12, 0.42, 0xf2f2f2, 0, BASE_Y + 2.96, 0));           // servo horn
+      head.add(box(2.4, 0.12, 1.3, 0x1b1b1b, 0, BASE_Y + 3.08, -0.15));        // bracket: flat part on the horn
+      head.add(box(2.4, 1.1, 0.12, 0x1b1b1b, 0, BASE_Y + 3.6, Z + 0.14));      // bracket: upright part behind the board
+      head.add(box(4.5, 2.0, 0.16, faces(mat(0x1f63c2), { 5: texMat(cv), 4: texMat(back) }), 0, Y, Z));
+      head.add(cyl(0.8, 1.2, 0xd0d6da, -1.3, Y + 0.05, Z - 0.6, 'z')); head.add(cyl(0.8, 1.2, 0xd0d6da, 1.3, Y + 0.05, Z - 0.6, 'z'));
+      head.add(cyl(0.55, 1.22, 0x3a3a3a, -1.3, Y + 0.05, Z - 0.6, 'z')); head.add(cyl(0.55, 1.22, 0x3a3a3a, 1.3, Y + 0.05, Z - 0.6, 'z'));
+      [-0.381, -0.127, 0.127, 0.381].forEach(function (x) { head.add(box(0.064, 0.064, 0.6, 0xd4af37, x, Y - 0.85, Z + 0.35)); });
     })();
-    var IRX = { L: -5.3, R: 5.3 };
-    var whisk = part('whiskers', 'KY-032 (Whiskers)', [0, 6.0, -13.6]);
-    ['L', 'R'].forEach(function (side) {
-      var x = IRX[side], cv = mkCanvas(440, 1000), c = cv.getContext('2d'); c.fillStyle = '#151515'; c.fillRect(0, 0, 440, 1000);
-      text(c, 'KY-032', 220, 300, 64, '#ddd'); text(c, 'Avoid', 220, 380, 44, '#aaa');
-      ['GND', 'VCC', 'OUT', 'EN'].forEach(function (s, i) { text(c, s, 220 + (i - 1.5) * 0.254 * 314, 900, 30, '#fff', -Math.PI / 2); });
-      whisk.add(box(1.4, 0.16, 3.2, faces(mat(0x151515), { 2: texMat(cv) }), x, 3.42, -11.0));
-      whisk.add(cyl(0.25, 0.6, 0xffffff, x - 0.35, 3.62, -12.6, 'z')); whisk.add(cyl(0.25, 0.6, 0x222222, x + 0.35, 3.62, -12.6, 'z'));
-      whisk.add(box(0.35, 0.35, 0.35, 0x2f7de1, x - 0.3, 3.7, -10.7)); whisk.add(box(0.35, 0.35, 0.35, 0x2f7de1, x + 0.3, 3.7, -10.7));
-      whisk.add(box(0.28, 0.3, 0.5, 0x111111, x + 0.45, 3.65, -9.9));
-      [-0.381, -0.127, 0.127, 0.381].forEach(function (dx) { whisk.add(box(0.064, 0.064, 0.6, 0xd4af37, x + dx, 3.55, -9.25)); });
-    });
 
     // =====================================================================
     //  CONNECTION POINTS
@@ -393,9 +402,8 @@
         'LF+': [[-4.4, 2.3, -0.75], [0, 0, 1]], 'LF-': [[-4.4, 1.2, -0.75], [0, 0, 1]], 'RF+': [[4.4, 2.3, -0.75], [0, 0, 1]], 'RF-': [[4.4, 1.2, -0.75], [0, 0, 1]],
         'LR+': [[-4.4, 2.3, 0.75], [0, 0, -1]], 'LR-': [[-4.4, 1.2, 0.75], [0, 0, -1]], 'RR+': [[4.4, 2.3, 0.75], [0, 0, -1]], 'RR-': [[4.4, 1.2, 0.75], [0, 0, -1]],
         'BAT-': [[-3.0, 4.2, 7.5], [0, 0, -1]], 'BAT+': [[3.0, 4.2, 7.5], [0, 0, -1]], 'SWin': [[5.0, 3.5, 11.3], [0, 0, 1], 'middle leg'], 'SWout': [[5.4, 3.5, 11.3], [0, 0, 1], 'end leg'],
-        'S:VCC': [[-0.381, 4.1, -11.35], [0, 0, 1], 'Vcc'], 'S:TRIG': [[-0.127, 4.1, -11.35], [0, 0, 1], 'Trig'], 'S:ECHO': [[0.127, 4.1, -11.35], [0, 0, 1], 'Echo'], 'S:GND': [[0.381, 4.1, -11.35], [0, 0, 1], 'Gnd'],
-        'IL:VCC': [[IRX.L - 0.127, 3.55, -8.95], [0, 0, 1], 'VCC'], 'IL:GND': [[IRX.L - 0.381, 3.55, -8.95], [0, 0, 1], 'GND'], 'IL:OUT': [[IRX.L + 0.127, 3.55, -8.95], [0, 0, 1], 'OUT'],
-        'IR:VCC': [[IRX.R - 0.127, 3.55, -8.95], [0, 0, 1], 'VCC'], 'IR:GND': [[IRX.R - 0.381, 3.55, -8.95], [0, 0, 1], 'GND'], 'IR:OUT': [[IRX.R + 0.127, 3.55, -8.95], [0, 0, 1], 'OUT']
+        'S:VCC': [[-0.381, 6.4, -11.25], [0, 0, 1], 'Vcc'], 'S:TRIG': [[-0.127, 6.4, -11.25], [0, 0, 1], 'Trig'], 'S:ECHO': [[0.127, 6.4, -11.25], [0, 0, 1], 'Echo'], 'S:GND': [[0.381, 6.4, -11.25], [0, 0, 1], 'Gnd'],
+        'SV:GND': [[-1.47, 3.33, -8.83], [0, 0, 1], 'GND'], 'SV:5V': [[-1.35, 3.33, -8.83], [0, 0, 1], '+5V'], 'SV:SIGNAL': [[-1.23, 3.33, -8.83], [0, 0, 1], 'signal']
       };
       var m = M[name], sensor = name.indexOf(':') > 0;
       return { p: V(m[0]), d: m[1], plug: sensor, lab: m[2] || (name.indexOf('BAT') === 0 ? 'battery ' + name.slice(3) : name.indexOf('SW') === 0 ? 'switch' : 'motor ' + name.slice(2)) };
@@ -506,7 +514,7 @@
     var DIST = opts.distScale || 1.25;   // how far the camera sits from each step (a closer value frames parts tighter)
     var ZOOMS = {
       brain: { t: [2.75, 4.2, -4.2], d: 7.5, top: true }, bb: { t: [-2.9, 4.1, -4.5], d: 7.5, top: true }, boss: { t: [0, 4, 3.9], d: 5.5, top: true },
-      battery: { t: [1.5, 4, 9.8], d: 9 }, eyes: { t: [0, 4.8, -12], d: 8 }, whiskers: { t: [0, 3.6, -11], d: 14 }, body: { t: [0, 2, 0], d: 28 },
+      battery: { t: [1.5, 4, 9.8], d: 9 }, eyes: { t: [0, 6.8, -12], d: 9 }, servo: { t: [0, 5.0, -11.3], d: 9 }, body: { t: [0, 2, 0], d: 28 },
       under: { t: [0, 1.6, 0], d: 24, under: true }, home: { t: [0, 3, 0], d: 36 }
     };
     function setStepVisibility() {
@@ -644,7 +652,7 @@
     var WIRES = [];
     S.forEach(function (st) { st.wireObjs.forEach(function (w) { WIRES.push({ g: w.g, color: w.color, step: st }); }); });
     return {
-      scene: scene, parts: PARTS, sub: SUB, wires: WIRES, lights: { sun: sun, rim: rim, hemi: hemi }, floor: floor, grid: grid,
+      scene: scene, parts: PARTS, sub: SUB, head: head, wires: WIRES, lights: { sun: sun, rim: rim, hemi: hemi }, floor: floor, grid: grid,
       renderFrame: function () { renderer.render(scene, camera); },
       steps: S, go: function (n) { spotlight = null; go(n); }, cur: function () { return cur; },
       next: function () { spotlight = null; go(cur + 1); }, prev: function () { spotlight = null; go(cur - 1); },

@@ -1,6 +1,6 @@
 # RoboBuild Lab
 
-An interactive 3D guide for building a 4WD obstacle-avoiding robot with an Arduino Uno, an L298N motor driver, four TT gear motors, an HC-SR04 ultrasonic sensor and two KY-032 IR sensors.
+An interactive 3D guide for building a 4WD obstacle-avoiding robot with an Arduino Uno, an L298N motor driver, four TT gear motors, and an HC-SR04 ultrasonic sensor that an MG90S servo turns to look left and right.
 
 - **3D Tutorial:** build the robot step by step, one action at a time. Rotate, zoom and pan it on desktop or phone.
 - **Wiring:** every connection, with a diagram and the reason it goes there.
