@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060a13">
+<title>Robot Assembly Video</title>
+<meta name="description" content="A 2:45 3D film of a 4WD obstacle-avoiding Arduino robot being built, from empty chassis to driving.">
+<meta property="og:title" content="4WD Obstacle-Avoiding Robot · Assembly Video">
+<meta property="og:description" content="Watch the robot being built in 3D: motors, wheels, L298N, Arduino, the servo-mounted ultrasonic eyes, and all 28 wires.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap">
+<style>
+:root {
+  --bg: #060a13; --panel: #0d1628; --line: #1b2a45; --line2: #24385c;
+  --ink: #e3ecf8; --muted: #8b9cb8; --cyan: #38d7f5;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); min-height: 100vh; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 48px; }
+.eyebrow { font: 600 .74rem var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 4vw, 2.5rem); line-height: 1.12; margin: 8px 0 10px; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 62ch; margin: 0 0 20px; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line2); border-radius: 12px; background: var(--panel); margin-bottom: 14px; }
+.tabs button { border: 0; background: none; color: var(--muted); font: 600 .9rem var(--body); padding: 9px 14px; border-radius: 9px; cursor: pointer; min-height: 40px; }
+.tabs button[aria-selected="true"] { background: rgba(56,215,245,.16); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(56,215,245,.45); }
+.player { background: #000; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; place-items: center; }
+.player video { display: block; width: 100%; height: auto; max-height: 78vh; background: #000; }
+.player.tall video { width: auto; max-width: 100%; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line2); background: var(--panel); color: var(--ink); text-decoration: none; font-weight: 600; font-size: .92rem; }
+.btn:hover { border-color: var(--cyan); }
+.btn.primary { background: linear-gradient(180deg, #19b6d9, #1288b8); border-color: transparent; color: #021018; }
+.note { color: var(--muted); font-size: .88rem; margin-top: 14px; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">Arduino Uno · L298N · HC-SR04 · MG90S</div>
+  <h1>4WD obstacle-avoiding robot: the build, in 3D</h1>
+  <p class="lede">One continuous camera films the robot being put together: four motors, four wheels, the L298N motor driver, battery, Arduino, breadboard, the servo-mounted ultrasonic eyes, and all 28 wires. Then it drives.</p>
+
+  <div class="tabs" role="tablist" aria-label="Video format">
+    <button role="tab" id="tWide" aria-selected="true" type="button">Widescreen 16:9</button>
+    <button role="tab" id="tTall" aria-selected="false" type="button">Phone 9:16</button>
+  </div>
+  <div class="player" id="player">
+    <video id="vid" controls playsinline preload="metadata" src="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4"></video>
+  </div>
+
+  <div class="row">
+    <a class="btn primary" id="dl" href="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4" download>Download this video (≈205 MB)</a>
+    <a class="btn" href="./">Open the 3D build guide</a>
+  </div>
+  <p class="note">2 minutes 45 seconds · 1080p · no sound (made for a voice-over). If the video doesn't start, use Download.</p>
+</main>
+<script>
+(function () {
+  var BASE = 'https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/';
+  var V = { wide: ['robot_assembly.mp4', '≈205 MB'], tall: ['robot_assembly_vertical.mp4', '≈200 MB'] };
+  var vid = document.getElementById('vid'), dl = document.getElementById('dl'), player = document.getElementById('player');
+  function pick(k) {
+    document.getElementById('tWide').setAttribute('aria-selected', k === 'wide');
+    document.getElementById('tTall').setAttribute('aria-selected', k === 'tall');
+    player.classList.toggle('tall', k === 'tall');
+    vid.src = BASE + V[k][0]; dl.href = BASE + V[k][0]; dl.textContent = 'Download this video (' + V[k][1] + ')';
+  }
+  document.getElementById('tWide').addEventListener('click', function () { pick('wide'); });
+  document.getElementById('tTall').addEventListener('click', function () { pick('tall'); });
+  if (matchMedia('(max-width: 600px) and (orientation: portrait)').matches) pick('tall');
+})();
+</script>
+</body>
+</html>
