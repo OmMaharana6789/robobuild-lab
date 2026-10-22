@@ -1,0 +1,1045 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060a13">
+<title>RoboBuild Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: engineering-dashboard shell. Fixed left rail of sections, one view at a time on the right.
+   The 3D builder view fills the viewport and becomes true fullscreen with overlay controls. */
+:root {
+  --bg: #060a13; --bg2: #0a1120; --panel: #0d1628; --panel2: #111d34; --line: #1b2a45; --line2: #24385c;
+  --ink: #e3ecf8; --muted: #8b9cb8; --dim: #5d6e8a;
+  --cyan: #38d7f5; --cyan-soft: rgba(56, 215, 245, .14); --blue: #3b82f6; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --radius: 12px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .5; z-index: 0;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(56,215,245,.10), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(59,130,246,.08), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%231b2a45' stroke-width='1'%3E%3Cpath d='M0 40h40l20 20h40M100 60v40l20 20h40M20 160v-40l20-20h20M120 0v20l-20 20'/%3E%3C/g%3E%3Cg fill='%23243a5f'%3E%3Ccircle cx='100' cy='60' r='2.5'/%3E%3Ccircle cx='60' cy='100' r='2.5'/%3E%3Ccircle cx='100' cy='40' r='2'/%3E%3C/g%3E%3C/svg%3E"); }
+a { color: var(--cyan); }
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 600; letter-spacing: .01em; margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.7rem, 3vw, 2.3rem); }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.12rem; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: .9em; }
+.grown code, .card code, td code { color: var(--cyan); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ---------- shell ---------- */
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 236px 1fr; min-height: 100%; }
+.app.collapsed { grid-template-columns: 68px 1fr; }
+.side { position: sticky; top: 0; height: 100vh; background: linear-gradient(180deg, #0a1222, #070c17); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 14px 10px; gap: 6px; overflow-y: auto; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 14px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.brand-logo { width: 34px; height: 34px; flex: none; border-radius: 9px; background: radial-gradient(circle at 30% 30%, #1c4b6b, #0b1830); border: 1px solid #2b5c80; display: grid; place-items: center; box-shadow: 0 0 18px rgba(56,215,245,.25) inset; }
+.brand b { font-family: var(--display); font-size: 1.08rem; letter-spacing: .04em; display: block; }
+.brand small { color: var(--muted); font-size: .74rem; font-family: var(--mono); }
+.nav { display: grid; gap: 2px; }
+.nav button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; text-align: left; font-weight: 500; transition: background .15s, color .15s; }
+.nav button svg { width: 19px; height: 19px; flex: none; }
+.nav button:hover { background: var(--panel); color: var(--ink); }
+.nav button.on { background: var(--cyan-soft); color: var(--ink); box-shadow: inset 2px 0 0 var(--cyan); }
+.nav .sec { font: 600 .68rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 12px 10px 4px; }
+.side-foot { margin-top: auto; display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mini-prog { padding: 8px 10px; border-radius: 9px; background: var(--panel); font-size: .8rem; color: var(--muted); }
+.mini-prog .bar { height: 5px; border-radius: 9px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.mini-prog .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); width: 0; transition: width .4s; }
+.collapse-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 7px; cursor: pointer; color: var(--muted); }
+.app.collapsed .brand b, .app.collapsed .brand small, .app.collapsed .nav button span, .app.collapsed .nav .sec, .app.collapsed .mini-prog { display: none; }
+.app.collapsed .nav button { justify-content: center; }
+.main { min-width: 0; }
+.topbar { display: none; }
+.view { display: none; padding-inline: 28px; padding-block: 26px 60px; max-width: 1240px; animation: viewIn .28s ease both; }
+.view.on { display: block; }
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.view-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.eyebrow { font: 600 .72rem var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); margin-bottom: 6px; }
+.lede { color: var(--muted); max-width: 70ch; margin-top: 6px; }
+
+/* ---------- building blocks ---------- */
+.card { background: linear-gradient(180deg, var(--panel), #0b1424); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.card.glow { border-color: #23506c; box-shadow: 0 0 0 1px rgba(56,215,245,.08), 0 10px 30px -18px rgba(56,215,245,.45); }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line2); background: var(--panel2); color: var(--ink); border-radius: 9px; padding: 9px 15px; cursor: pointer; font-weight: 600; transition: border-color .15s, background .15s, transform .1s; }
+.btn:hover { border-color: var(--cyan); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: linear-gradient(180deg, #19b6d9, #1288b8); border-color: transparent; color: #021018; box-shadow: 0 6px 22px -10px rgba(56,215,245,.8); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 6px 11px; font-size: .86rem; }
+.btn[disabled] { opacity: .4; cursor: default; }
+.btn svg { width: 16px; height: 16px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 .74rem var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line2); color: var(--muted); background: rgba(13,22,40,.7); }
+.chip.ok { color: var(--ok); border-color: rgba(52,211,153,.35); }
+.chip.cy { color: var(--cyan); border-color: rgba(56,215,245,.35); }
+.chip.warn { color: var(--warn); border-color: rgba(251,191,36,.35); }
+.swatch { width: .8em; height: .8em; border-radius: 3px; display: inline-block; border: 1px solid rgba(255,255,255,.25); vertical-align: -.05em; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 .7rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); background: #0b1324; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: rgba(56,215,245,.03); }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: .88rem; }
+.warnbox { border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.07); color: #fde68a; border-radius: 10px; padding: 10px 14px; }
+.badbox { border: 1px solid rgba(248,113,113,.4); background: rgba(248,113,113,.08); color: #fecaca; border-radius: 10px; padding: 10px 14px; }
+[data-tip] { position: relative; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; background: #02060d; border: 1px solid var(--line2); color: var(--ink); font: 500 .76rem var(--body); padding: 5px 9px; border-radius: 7px; z-index: 50; pointer-events: none; }
+[data-tip-down]:hover::after { bottom: auto; top: calc(100% + 8px); }
+
+/* ---------- dashboard ---------- */
+.hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+.hero-main { position: relative; overflow: hidden; padding: 26px; }
+.hero-main::after { content: ""; position: absolute; right: -40px; top: -40px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(56,215,245,.18), transparent 65%); pointer-events: none; }
+.hero-main h1 { max-width: 18ch; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.ring { width: 128px; height: 128px; flex: none; }
+.prog-card { display: flex; gap: 18px; align-items: center; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.kpi { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #0a1222; }
+.kpi b { display: block; font: 600 1.3rem var(--display); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: .76rem; color: var(--muted); }
+.phase-row { display: grid; grid-template-columns: 150px 1fr 54px; align-items: center; gap: 12px; padding: 7px 0; font-size: .9rem; }
+.phase-row .bar { height: 7px; border-radius: 9px; background: var(--line); overflow: hidden; }
+.phase-row .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+.phase-row .n { text-align: right; font-family: var(--mono); color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.module { cursor: pointer; transition: border-color .15s, transform .15s; display: grid; gap: 8px; }
+.module:hover { border-color: #2a6f8f; transform: translateY(-2px); }
+.module .ico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--cyan-soft); color: var(--cyan); }
+.module .ico svg { width: 20px; height: 20px; }
+.comp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.comp-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 11px; border-radius: 9px; border: 1px solid var(--line); background: #0a1222; cursor: pointer; font-size: .86rem; }
+.comp-chip:hover { border-color: var(--cyan); }
+.comp-chip i { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ---------- 3D builder ---------- */
+#view-build { max-width: none; padding: 0; }
+.stage { position: relative; height: 100vh; min-height: 560px; background: radial-gradient(ellipse at 50% 30%, #0f1c33 0%, #060a13 70%); overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.stage.fs { position: fixed; inset: 0; z-index: 100; height: 100%; min-height: 0; }
+.stage:fullscreen { min-height: 0; }
+.overlay { position: absolute; pointer-events: none; }
+.overlay > * { pointer-events: auto; }
+.tools { top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 320px); }
+.tool { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line2); background: rgba(10,17,32,.86); backdrop-filter: blur(6px); cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--ink); }
+.tool:hover { border-color: var(--cyan); }
+.tool svg { width: 16px; height: 16px; }
+.tool.on { background: rgba(56,215,245,.18); border-color: var(--cyan); color: #bff4ff; }
+.status { top: 14px; right: 14px; display: grid; gap: 6px; justify-items: end; }
+.stat { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 9px; border: 1px solid var(--line2); background: rgba(10,17,32,.86); backdrop-filter: blur(6px); font: 600 .8rem var(--mono); }
+.stat .led { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.stat.shift { border-color: var(--warn); color: var(--warn); box-shadow: 0 0 0 3px rgba(251,191,36,.12); }
+.stat.shift .led { background: var(--warn); box-shadow: 0 0 10px var(--warn); animation: blink .8s infinite; }
+@keyframes blink { 50% { opacity: .3; } }
+.kbd { font: 600 .72rem var(--mono); border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; color: var(--muted); }
+.stepcard { left: 14px; bottom: 14px; width: min(520px, calc(100% - 28px)); background: rgba(8,14,27,.92); backdrop-filter: blur(8px); border: 1px solid #23506c; border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; box-shadow: 0 20px 50px -20px #000; transition: opacity .25s; }
+.stepcard .collapsible { display: grid; gap: 10px; }
+.stepcard.min .collapsible { display: none; }
+.stepcard.gone { display: none; }
+.stepcard .top .right { display: flex; align-items: center; gap: 8px; }
+.icobtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line2); background: transparent; color: var(--muted); cursor: pointer; font: 700 1rem/1 var(--mono); }
+.icobtn:hover { color: var(--ink); border-color: var(--cyan); }
+.restore { left: 14px; bottom: 14px; display: none; }
+.restore.on { display: block; }
+.restore button { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #23506c; background: rgba(8,14,27,.9); backdrop-filter: blur(6px); color: var(--ink); cursor: pointer; font-size: .82rem; font-weight: 600; box-shadow: 0 10px 30px -12px #000; }
+.restore button:hover { border-color: var(--cyan); }
+.restore .n { font-family: var(--mono); color: var(--cyan); }
+.stepcard .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.stepcard .phase { font: 600 .7rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); }
+.stepcard h2 { font-size: 1.35rem; }
+.stepcard .kid { font-size: 1.08rem; font-weight: 500; }
+.donow { border: 1px solid rgba(56,215,245,.45); background: linear-gradient(90deg, rgba(56,215,245,.12), rgba(56,215,245,.03)); border-radius: 10px; padding: 10px 12px; display: grid; gap: 3px; animation: donowIn .5s ease both; }
+.donow b { font: 600 .7rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); }
+.donow span { font-size: 1.04rem; font-weight: 600; }
+@keyframes donowIn { 0% { box-shadow: 0 0 0 0 rgba(56,215,245,.6); } 100% { box-shadow: 0 0 0 10px rgba(56,215,245,0); } }
+.wirechips { display: flex; flex-wrap: wrap; gap: 8px; }
+.wirechip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 5px; border-radius: 999px; background: #0d1830; border: 1px solid var(--line2); font-weight: 600; font-size: .86rem; }
+.wirechip i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); }
+details.grown { border-top: 1px solid var(--line); padding-top: 8px; font-size: .88rem; color: var(--muted); }
+details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; font-size: .85rem; }
+.stepnav { display: flex; gap: 8px; align-items: center; }
+.stepnav .grow { flex: 1; }
+.stepdots { right: 14px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 300px; justify-content: flex-end; }
+.stepdots i { width: 9px; height: 9px; border-radius: 3px; background: #1b2a45; cursor: pointer; transition: transform .1s; }
+.stepdots i:hover { transform: scale(1.4); }
+.stepdots i.done { background: #1f8f73; }
+.stepdots i.now { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.loading3d { inset: 0; display: grid; place-items: center; color: var(--muted); font-family: var(--mono); }
+.spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--line2); border-top-color: var(--cyan); animation: spin 1s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.flash { inset: 0; background: radial-gradient(circle, rgba(56,215,245,.10), transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none !important; }
+.flash.on { opacity: 1; transition: none; }
+
+/* ---------- build overview ---------- */
+.phase-block { margin-bottom: 18px; }
+.phase-block h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.steplist { display: grid; gap: 6px; }
+.stepitem { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #0a1222; cursor: pointer; transition: border-color .15s; }
+.stepitem:hover { border-color: var(--cyan); }
+.stepitem .num { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font: 600 .82rem var(--mono); background: var(--panel2); color: var(--muted); }
+.stepitem.done .num { background: rgba(52,211,153,.15); color: var(--ok); }
+.stepitem.now { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(56,215,245,.25); }
+.stepitem .t { font-weight: 600; }
+.stepitem .s { font-size: .84rem; color: var(--muted); }
+
+/* ---------- wiring ---------- */
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 900px; width: 100%; height: auto; }
+.conn { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.conn:last-child { border-bottom: 0; }
+.conn svg { width: 100%; height: auto; max-width: 300px; }
+.conn .why { font-size: .9rem; color: var(--muted); }
+.conn .why b { color: var(--ink); }
+.flowline { stroke-dasharray: 6 6; animation: flow 1.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -24; } }
+.checkrow { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.checkrow input { margin-top: 4px; accent-color: var(--cyan); width: 16px; height: 16px; }
+
+/* ---------- components / learn ---------- */
+.comp { scroll-margin-top: 20px; }
+.comp-head { display: flex; gap: 14px; align-items: center; cursor: pointer; }
+.comp-ico { width: 54px; height: 54px; border-radius: 12px; flex: none; background: #0a1222; border: 1px solid var(--line2); display: grid; place-items: center; }
+.comp-body { display: none; margin-top: 14px; gap: 14px; }
+.comp.open .comp-body { display: grid; }
+.comp .chev { margin-left: auto; transition: transform .2s; color: var(--muted); }
+.comp.open .chev { transform: rotate(180deg); }
+.simple { border-left: 3px solid var(--cyan); padding: 8px 12px; background: var(--cyan-soft); border-radius: 0 8px 8px 0; font-size: 1.02rem; }
+.deep h4 { font-size: .95rem; margin: 6px 0 4px; color: var(--cyan); }
+.deep p, .deep li { color: #c9d6ea; font-size: .92rem; }
+.deep ul { margin: 4px 0; padding-left: 1.2em; }
+.svgbox { background: #070d19; border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; }
+.svgbox svg { display: block; width: 100%; height: auto; min-width: 420px; }
+.learn-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+
+/* ---------- code ---------- */
+.codeblock { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; background: #070d19; }
+.codeblock pre { margin: 0; padding: 14px; overflow-x: auto; font: .8rem/1.55 var(--mono); color: #cfe2ff; border-right: 1px solid var(--line); max-height: 460px; }
+.codeblock .explain { padding: 16px; display: grid; gap: 10px; align-content: start; background: var(--panel); }
+.codeblock .explain h3 { color: var(--ink); }
+.tok-c { color: #6b819f; } .tok-k { color: #7cc7ff; } .tok-n { color: #ffb86b; } .tok-s { color: #a5e8a0; }
+
+/* ---------- exam ---------- */
+.qa { border: 1px solid var(--line); border-radius: 10px; background: #0a1222; }
+.qa button { width: 100%; text-align: left; padding: 13px 14px; border: 0; background: none; cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600; }
+.qa .a { display: none; padding: 0 14px 14px 40px; color: #c9d6ea; }
+.qa.open .a { display: block; animation: viewIn .2s ease; }
+.qa .q-ico { color: var(--cyan); font-family: var(--mono); }
+.badge-ach { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: #0a1222; opacity: .45; }
+.badge-ach.got { opacity: 1; border-color: rgba(52,211,153,.4); }
+.badge-ach .medal { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--panel2); font-family: var(--display); font-weight: 700; color: var(--muted); }
+.badge-ach.got .medal { background: radial-gradient(circle at 30% 30%, #4ee6c2, #12806a); color: #02150f; box-shadow: 0 0 16px rgba(52,211,153,.4); }
+.btn.quiet-danger { background: transparent; color: var(--muted); border-color: var(--line2); }
+.btn.quiet-danger:hover { color: var(--bad); border-color: rgba(248,113,113,.5); }
+.btn.danger { background: #b91c1c; border-color: #dc2626; color: #fff; }
+.btn.danger:hover { background: #dc2626; }
+.modal-back { position: fixed; inset: 0; z-index: 300; display: none; place-items: center; padding: 16px; background: rgba(2,6,14,.62); backdrop-filter: blur(3px); }
+.modal-back.on { display: grid; animation: viewIn .18s ease; }
+.modal { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--line2); border-radius: 14px; padding: 20px; display: grid; gap: 12px; box-shadow: 0 30px 70px -20px #000; }
+.modal h3 { font-size: 1.15rem; }
+.modal ul { margin: 0 0 0 18px; color: var(--muted); display: grid; gap: 3px; }
+.modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+/* ---------- phone UI (built separately: tab bar, sheets, full-height 3D) ---------- */
+.tabbar, .sheet-back, .sheet-handle, .phone-only { display: none; }
+@media (hover: none) { [data-tip]:hover::after, [data-tip]:focus-visible::after { display: none; } }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) { .hero { grid-template-columns: 1fr; } .codeblock { grid-template-columns: 1fr; } .codeblock pre { border-right: 0; border-bottom: 1px solid var(--line); } }
+@media (max-width: 760px) {
+  .app, .app.collapsed { grid-template-columns: 1fr; }
+  .side { position: fixed; left: 0; top: 0; z-index: 60; width: 250px; transform: translateX(-100%); transition: transform .25s; }
+  .app.drawer .side { transform: none; box-shadow: 20px 0 60px #000; }
+  .app.collapsed .brand b, .app.collapsed .brand small, .app.collapsed .nav button span, .app.collapsed .nav .sec, .app.collapsed .mini-prog { display: revert; }
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #070c17; position: sticky; top: 0; z-index: 40; }
+  .view { padding-inline: 16px; }
+  .conn { grid-template-columns: 1fr; }
+  .phase-row { grid-template-columns: 110px 1fr 44px; }
+  .tools { max-width: calc(100% - 28px); }
+  .status { top: auto; bottom: auto; right: 14px; top: 58px; }
+  .stepdots { display: none; }
+  .collapse-btn { display: none; }
+}
+@media (max-width: 760px), (max-height: 520px) and (pointer: coarse) {
+  :root { --tabh: calc(58px + env(safe-area-inset-bottom)); }
+  body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+  .app, .app.collapsed { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .main { padding-bottom: var(--tabh); }
+  .topbar { display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 40; padding: calc(9px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 9px max(16px, env(safe-area-inset-left)); background: rgba(7,12,23,.97); border-bottom: 1px solid var(--line); }
+  .topbar .brand-logo { width: 30px; height: 30px; border-radius: 8px; }
+  .topbar .t { flex: 1; min-width: 0; font-family: var(--display); font-size: 1.06rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .view { padding-inline: max(16px, env(safe-area-inset-left)); padding-block: 18px 28px; }
+  .phone-only { display: block; }
+  .btn { min-height: 44px; } .btn.sm { min-height: 40px; }
+  .view-head { align-items: start; }
+  h1 { font-size: 1.6rem; }
+
+  /* bottom tab bar + More sheet */
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; height: var(--tabh); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: rgba(7,12,23,.98); border-top: 1px solid var(--line); }
+  .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; border: 0; background: none; color: var(--muted); font-size: .68rem; font-weight: 600; cursor: pointer; }
+  .tabbar svg { width: 23px; height: 23px; }
+  .tabbar button.on { color: var(--cyan); }
+  .tabbar button.on svg { filter: drop-shadow(0 0 6px rgba(56,215,245,.55)); }
+  .sheet-back.on { display: block; position: fixed; inset: 0; z-index: 200; background: rgba(2,6,14,.6); animation: viewIn .18s ease; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 85%; overflow-y: auto; background: var(--panel); border-top: 1px solid var(--line2); border-radius: 18px 18px 0 0; padding: 4px 12px calc(14px + env(safe-area-inset-bottom)); display: grid; gap: 2px; animation: sheetUp .22s ease; }
+  .sheet-grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line2); margin: 8px auto 6px; }
+  .sheet .mini-prog { margin-bottom: 6px; }
+  .sheet button { display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; color: var(--ink); text-align: left; font-weight: 600; cursor: pointer; }
+  .sheet button.on { background: var(--cyan-soft); }
+  .sheet button svg { width: 22px; height: 22px; flex: none; color: var(--cyan); }
+  .sheet small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* 3D Build: full height above the tab bar, scrolling tool strip, docked step sheet */
+  body.v-build .topbar { display: none; }
+  body.v-build .main { padding-bottom: 0; }
+  .stage { height: calc(100vh - var(--tabh)); height: calc(100dvh - var(--tabh)); min-height: 0; }
+  .stage.fs { height: 100%; }
+  .tools { top: calc(10px + env(safe-area-inset-top)); left: 0; right: 0; max-width: none; flex-wrap: nowrap; overflow-x: auto; padding: 0 12px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .tools::-webkit-scrollbar { display: none; }
+  .tool { flex: none; height: 40px; backdrop-filter: none; background: rgba(10,17,32,.94); }
+  .status, .stepdots { display: none; }
+  .stepcard { left: 0; right: 0; bottom: 0; width: auto; max-height: 62%; overflow-y: auto; overscroll-behavior: contain; border-radius: 18px 18px 0 0; border-width: 1px 0 0; padding: 0 max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); gap: 8px; backdrop-filter: none; background: rgba(8,14,27,.97); }
+  .stage.fs .stepcard { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .sheet-handle { display: block; width: 100%; height: 24px; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; }
+  .sheet-handle i { display: block; width: 44px; height: 5px; border-radius: 9px; background: var(--line2); margin: 9px auto 0; }
+  .stepcard h2 { font-size: 1.16rem; }
+  .stepcard.min .kid { display: none; }   /* compact sheet: title, the one action, buttons. Swipe up for the explanation */
+  .stepcard .kid { font-size: .98rem; }
+  .donow { padding: 9px 11px; } .donow span { font-size: .98rem; }
+  .stepnav .btn { min-height: 46px; padding: 0 13px; }
+  .stepnav { display: grid; grid-template-columns: auto auto 1fr; }
+  .stepnav .grow, #prevBtn .lbl { display: none; }
+  .stepnav #nextBtn { justify-content: center; white-space: nowrap; }
+  .stepnav .btn { white-space: nowrap; }
+  .icobtn { width: 40px; height: 40px; }
+  .restore { left: max(12px, env(safe-area-inset-left)); bottom: 12px; }
+  .stage.fs .restore { bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .restore button { height: 44px; backdrop-filter: none; }
+
+  /* dialogs become bottom sheets */
+  .modal-back { place-items: end center; padding: 0; backdrop-filter: none; }
+  .modal { width: 100%; border-radius: 18px 18px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .modal .row .btn { flex: 1; justify-content: center; }
+
+  /* content */
+  .hero-main { padding: 20px; }
+  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .prog-card .ring { width: 96px; height: 96px; }
+  .phase-row { grid-template-columns: 96px 1fr 40px; font-size: .84rem; }
+  .codeblock pre { max-height: 340px; font-size: .74rem; }
+  .comp-chip, .stepitem, .qa button { min-height: 44px; }
+  .checkrow input { width: 22px; height: 22px; margin-top: 1px; }
+}
+/* phone held sideways: the step card docks on the left so the robot keeps the right side */
+@media (max-height: 520px) and (pointer: coarse) and (orientation: landscape) {
+  :root { --tabh: calc(50px + env(safe-area-inset-bottom)); }
+  .tabbar button { flex-direction: row; gap: 6px; font-size: .74rem; }
+  .stepcard { right: auto; top: 58px; width: min(380px, 46%); max-height: none; border-radius: 0 18px 0 0; border-width: 1px 1px 0 0; }
+  .sheet-handle { display: none; }
+}
+</style>
+
+<div class="app" id="app">
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="brand-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38d7f5" stroke-width="1.8"><rect x="5" y="7" width="14" height="10" rx="2"/><circle cx="9" cy="12" r="1.4" fill="#38d7f5"/><circle cx="15" cy="12" r="1.4" fill="#38d7f5"/><path d="M12 4v3M3 10v4M21 10v4"/></svg></div>
+      <div><b>RoboBuild Lab</b><small>4WD sensor robot</small></div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <div class="sec">Project</div>
+      <button data-view="dashboard" data-tip="Overview and progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></button>
+      <button data-view="steps" data-tip="All build steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.3"/><circle cx="4" cy="12" r="1.3"/><circle cx="4" cy="18" r="1.3"/></svg><span>Build Robot</span></button>
+      <button data-view="build" data-tip="Interactive 3D builder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D Tutorial</span></button>
+      <button data-view="wiring" data-tip="Every connection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Wiring</span></button>
+      <div class="sec">Learn</div>
+      <button data-view="components" data-tip="Every part, explained"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Components</span></button>
+      <button data-view="learn" data-tip="Electronics basics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn Electronics</span></button>
+      <button data-view="code" data-tip="Arduino code, explained"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Code</span></button>
+      <div class="sec">Present</div>
+      <button data-view="exam" data-tip="Questions and answers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision</span></button>
+      <button data-view="progress" data-tip="Your progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress</span></button>
+    </nav>
+    <div class="side-foot">
+      <div class="mini-prog"><span id="miniProgText">0 / 0 steps</span><div class="bar"><i id="miniProgBar"></i></div></div>
+      <button class="collapse-btn" id="collapse" type="button" data-tip="Collapse sidebar" aria-label="Collapse sidebar">⇤</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#38d7f5" stroke-width="1.8"><rect x="5" y="7" width="14" height="10" rx="2"/><circle cx="9" cy="12" r="1.4" fill="#38d7f5"/><circle cx="15" cy="12" r="1.4" fill="#38d7f5"/><path d="M12 4v3M3 10v4M21 10v4"/></svg></div><b class="t" id="topTitle">Dashboard</b><span class="chip cy" id="topProg">0 / 0</span></div>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="view" id="view-dashboard">
+      <div class="hero">
+        <div class="card glow hero-main">
+          <div class="eyebrow">Project · Arduino Uno · L298N · HC-SR04 · KY-032</div>
+          <h1>4WD obstacle-avoiding robot</h1>
+          <p class="lede">A four-wheel car that drives by itself. Ultrasonic “eyes” measure what is ahead, two IR “whiskers” watch the front corners, and an Arduino tells an L298N motor driver when to drive and when to stop. Build it step by step in 3D, then learn how every part works.</p>
+          <div class="hero-actions">
+            <button class="btn primary" id="dashContinue" type="button" data-tip="Open the 3D builder at your current step">▶ <span id="dashContinueText">Start Building</span></button>
+            <button class="btn" type="button" data-go="wiring" data-tip="See every connection">View Wiring</button>
+            <button class="btn" type="button" data-go="components" data-tip="What every part does">Learn the parts</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="prog-card">
+            <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="none" stroke="#1b2a45" stroke-width="10"/><circle id="ringArc" cx="60" cy="60" r="50" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .6s"/><defs><linearGradient id="rg"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#38d7f5"/></linearGradient></defs><text id="ringPct" x="60" y="58" text-anchor="middle" fill="#e3ecf8" font-family="Chakra Petch" font-weight="700" font-size="24">0%</text><text x="60" y="78" text-anchor="middle" fill="#8b9cb8" font-family="JetBrains Mono" font-size="9">BUILT</text></svg>
+            <div style="min-width:0">
+              <div class="eyebrow">Progress</div>
+              <h2 id="dashCount">0 / 0 steps completed</h2>
+              <p class="note" id="dashCurrent">Next: step 1</p>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><b id="kpiWires">0</b><span>wires connected</span></div>
+            <div class="kpi"><b id="kpiPhases">0</b><span>phases done</span></div>
+            <div class="kpi"><b>9</b><span>components</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card">
+          <h3>Build phases</h3>
+          <div id="dashPhases" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <h3>Current step</h3>
+          <div id="dashStep" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <h2 style="margin:28px 0 12px">Learning modules</h2>
+      <div class="grid g3" id="dashModules"></div>
+
+      <h2 style="margin:28px 0 12px">Components in this robot</h2>
+      <div class="comp-chips" id="dashComps"></div>
+    </section>
+
+    <!-- ===================== BUILD OVERVIEW ===================== -->
+    <section class="view" id="view-steps">
+      <div class="view-head"><div><div class="eyebrow">Build Robot</div><h1>Every step, one action at a time</h1><p class="lede">Each step is one small job. Tap a step to open it in the 3D builder.</p></div><button class="btn primary" type="button" id="stepsContinue">▶ Continue Building</button></div>
+      <div id="stepsList"></div>
+    </section>
+
+    <!-- ===================== 3D BUILDER ===================== -->
+    <section class="view" id="view-build">
+      <div class="stage" id="stage">
+        <canvas id="scene" aria-label="Interactive 3D model of the robot"></canvas>
+        <div class="overlay flash" id="flash"></div>
+        <div class="overlay loading3d" id="loading3d"><div><div class="spinner"></div>Loading the 3D robot…</div></div>
+
+        <div class="overlay tools" id="tools">
+          <button class="tool" id="fsBtn" type="button" data-tip-down data-tip="Fullscreen 3D (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fsText">Fullscreen</span></button>
+          <button class="tool" id="resetBtn" type="button" data-tip-down data-tip="Back to the view for this step (R)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset view</button>
+          <button class="tool" id="modeBtn" type="button" data-tip-down data-tip="Drag spins or moves the robot. Hold SHIFT to swap."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span id="modeText">Drag: Rotate</span></button>
+          <button class="tool" data-zoom="under" type="button" data-tip-down data-tip="Look under the car">Underneath</button>
+          <button class="tool" data-zoom="brain" type="button" data-tip-down data-tip="Read every Arduino label (wires hidden)">Arduino</button>
+          <button class="tool" data-zoom="bb" type="button" data-tip-down data-tip="Read the breadboard (wires hidden)">Breadboard</button>
+          <button class="tool" data-zoom="boss" type="button" data-tip-down data-tip="Read the L298N (wires hidden)">L298N</button>
+        </div>
+
+        <div class="overlay status">
+          <div class="stat" id="stepStat"><span class="led"></span><span id="stepStatText">Start</span></div>
+          <div class="stat" id="modeStat"><span class="led"></span><span id="modeStatText">Rotate mode</span></div>
+          <div class="stat" style="font-weight:500;color:var(--muted)"><span class="kbd">Shift</span> swap · <span class="kbd">←</span><span class="kbd">→</span> steps · <span class="kbd">H</span> hide guide · scroll zoom</div>
+        </div>
+
+        <div class="overlay stepcard" id="stepcard">
+          <button class="sheet-handle" id="sheetHandle" type="button" aria-label="Show more or less of this step (swipe up or down)"><i></i></button>
+          <div class="top"><span class="phase" id="scPhase">Ready</span><span class="right"><span class="chip" id="scNum">0 / 0</span><button class="icobtn" id="cardMin" type="button" aria-label="Minimise the step card" data-tip="Minimise (H)">−</button></span></div>
+          <h2 id="scTitle">Let’s build a robot</h2>
+          <p class="kid" id="scKid">Press Next to start. Spin the robot with your mouse or finger.</p>
+          <div class="donow" id="scDo"><b>Do this now</b><span id="scDoText">Press Next.</span></div>
+          <div class="collapsible">
+            <div class="wirechips" id="scWires"></div>
+            <details class="grown" id="scGrownWrap"><summary>For grown-ups: exact pins</summary><div id="scGrown" style="margin-top:6px"></div></details>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button class="btn sm" id="learnBtn" type="button" data-tip="Open this part in Components">Learn this part</button>
+              <button class="btn sm" type="button" data-go="wiring" data-tip="Open the wiring page">View wiring</button>
+              <button class="btn sm ghost" id="minBtn" type="button" data-tip="Hide details">Hide details</button>
+            </div>
+          </div>
+          <div class="stepnav">
+            <button class="btn" id="prevBtn" type="button" data-tip="Previous step (←)" aria-label="Previous step">◀<span class="lbl"> Previous</span></button>
+            <button class="btn" id="doneBtn" type="button" data-tip="Mark this step complete">✓ Mark complete</button>
+            <span class="grow"></span>
+            <button class="btn primary" id="nextBtn" type="button" data-tip="Next step (→). Marks this one done.">Next ▶</button>
+          </div>
+        </div>
+        <div class="overlay restore" id="restoreWrap"><button id="cardRestore" type="button" aria-label="Show the step card" data-tip="Show the step card (H)"><span>▴</span><span>Show guide</span><span class="n" id="restoreNum"></span></button></div>
+        <div class="overlay stepdots" id="stepdots"></div>
+      </div>
+    </section>
+
+    <!-- ===================== WIRING ===================== -->
+    <section class="view" id="view-wiring">
+      <div class="view-head"><div><div class="eyebrow">Wiring</div><h1>Every connection, and why</h1><p class="lede">Wire colours match the 3D builder. Red is always + power, black is always GND (ground).</p></div><button class="btn" type="button" id="wiringTo3d">Open in 3D</button></div>
+      <div class="card"><h3>Complete wiring diagram</h3><p class="note phone-only" style="margin-top:4px">Swipe sideways to see the whole diagram.</p><p class="note" style="margin:4px 0 12px">Both left motors share OUT1/OUT2 and both right motors share OUT3/OUT4. Every “+” goes to the breadboard red row, every “GND” to the blue row.</p><div class="diagram" id="fullDiagram"></div></div>
+      <div class="warnbox" style="margin:16px 0">Battery red goes to the switch’s middle leg, then 12V. Battery black goes to GND. Swapping them shorts the battery: sparks and heat.</div>
+      <div class="card" style="padding:0"><div style="padding:16px 16px 4px"><h3>Connection by connection</h3><p class="note">Tap “Show in 3D” to see that wire glow on the robot.</p></div><div id="connList"></div></div>
+      <div class="card" style="margin-top:16px"><h3>Final check-list</h3><p class="note" style="margin:4px 0 8px">Tick each wire after following it with your finger. Saved on this device.</p><div id="checkList"></div></div>
+    </section>
+
+    <!-- ===================== COMPONENTS ===================== -->
+    <section class="view" id="view-components">
+      <div class="view-head"><div><div class="eyebrow">Components</div><h1>Every part in this robot</h1><p class="lede">Simple first, then the technical part. Only the parts actually used in this robot are listed.</p></div></div>
+      <div class="grid" id="compList"></div>
+    </section>
+
+    <!-- ===================== LEARN ELECTRONICS ===================== -->
+    <section class="view" id="view-learn">
+      <div class="view-head"><div><div class="eyebrow">Learn Electronics</div><h1>The ideas behind the robot</h1><p class="lede">Short lessons, each tied to something on your robot.</p></div></div>
+      <div class="learn-nav" id="learnNav"></div>
+      <div class="grid" id="learnList"></div>
+    </section>
+
+    <!-- ===================== CODE ===================== -->
+    <section class="view" id="view-code">
+      <div class="view-head"><div><div class="eyebrow">Code · rc_robot_4wd.ino</div><h1>The Arduino code, piece by piece</h1><p class="lede">Each block of code next to what it does in plain words, and which part of the robot it controls.</p></div><button class="btn" type="button" id="copyCode">Copy full code</button></div>
+      <div id="codeList"></div>
+    </section>
+
+    <!-- ===================== QUICK REVISION ===================== -->
+    <section class="view" id="view-exam">
+      <div class="view-head"><div><div class="eyebrow">Quick Revision</div><h1>Exam questions about this robot</h1><p class="lede">Read the question, answer in your head, then tap to check.</p></div><div style="display:flex;gap:8px"><button class="btn sm" id="openAll" type="button">Show all answers</button><button class="btn sm" id="closeAll" type="button">Hide all</button></div></div>
+      <div class="grid" id="qaList"></div>
+    </section>
+
+    <!-- ===================== PROGRESS ===================== -->
+    <section class="view" id="view-progress">
+      <div class="view-head"><div><div class="eyebrow">Progress</div><h1 id="progTitle">0 / 0 steps completed</h1><p class="lede">Saved in this browser on this device.</p></div>
+        <div style="display:flex;gap:8px;align-items:center"><button class="btn sm quiet-danger" id="resetProg" type="button" data-tip="Clears your saved progress (asks first)">↺ Reset progress</button></div></div>
+      <h3 style="margin-bottom:10px">Achievements</h3>
+      <div class="grid g3" id="achList" style="margin-bottom:24px"></div>
+      <h3 style="margin-bottom:10px">Steps</h3>
+      <div id="progSteps"></div>
+    </section>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button type="button" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Home</span></button>
+    <button type="button" data-view="steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.3"/><circle cx="4" cy="12" r="1.3"/><circle cx="4" cy="18" r="1.3"/></svg><span>Steps</span></button>
+    <button type="button" data-view="build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D Build</span></button>
+    <button type="button" data-view="wiring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Wiring</span></button>
+    <button type="button" id="moreBtn" aria-haspopup="dialog" aria-controls="moreSheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
+  </nav>
+  <div class="sheet-back" id="moreSheet" role="dialog" aria-modal="true" aria-label="More sections">
+    <div class="sheet">
+      <div class="sheet-grab" aria-hidden="true"></div>
+      <div class="mini-prog"><span id="moreProgText">0 / 0 steps</span><div class="bar"><i id="moreProgBar"></i></div></div>
+      <button type="button" data-view="components"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Components<small>Every part, explained</small></span></button>
+      <button type="button" data-view="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn Electronics<small>Voltage, PWM, H-bridges, sensors</small></span></button>
+      <button type="button" data-view="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Code<small>The Arduino sketch, block by block</small></span></button>
+      <button type="button" data-view="exam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision<small>Exam questions with answers</small></span></button>
+      <button type="button" data-view="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress<small>Steps, achievements, reset</small></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="modal">
+    <h3 id="resetTitle">Reset your progress?</h3>
+    <p class="note">This clears what is saved on this device:</p>
+    <ul><li>completed steps and achievements</li><li>the step the 3D Tutorial was on</li><li>the wiring check-list ticks</li></ul>
+    <p class="note">The lessons, wiring, components and code stay exactly the same. This can’t be undone.</p>
+    <div class="row"><button class="btn sm" id="resetNo" type="button">Cancel</button><button class="btn sm danger" id="resetYes" type="button">Yes, reset progress</button></div>
+  </div>
+</div>
+
+<script id="srcCode" type="application/json">"// =====================================================================\n//  4WD SENSOR ROBOT  -  drives forward, stops for obstacles\n//  Arduino Uno + L298N motor driver + 4 TT gear motors + HC-SR04 + 2 IR\n// =====================================================================\n//\n//  What it does\n//  ------------\n//  Switch the battery ON, wait 3 seconds, and the robot drives forward.\n//  It keeps going until the battery is switched off or runs flat.\n//    * Something closer than 45 cm ahead  -> it slows down.\n//    * Something closer than 22 cm ahead, or a left/right IR \"whisker\"\n//      sees something                     -> it stops and waits.\n//    * The way is clear again             -> it drives on.\n//  It only ever drives forward: no reversing, no turning.\n//\n//  USB testing (Serial Monitor, 9600 baud): S = stop, G = go.\n//  The Serial Monitor also shows the sensor readings twice a second.\n// =====================================================================\n\n// ---------------- PINS ----------------------------------------------\nconst byte LEFT_EN   = 5;    // L298N ENA (PWM speed, ENA jumper removed)\nconst byte LEFT_IN1  = 7;    // L298N IN1\nconst byte LEFT_IN2  = 8;    // L298N IN2\nconst byte RIGHT_EN  = 6;    // L298N ENB (PWM speed, ENB jumper removed)\nconst byte RIGHT_IN1 = 12;   // L298N IN3\nconst byte RIGHT_IN2 = 13;   // L298N IN4\n\nconst byte SONAR_TRIG = 9;   // HC-SR04 Trig\nconst byte SONAR_ECHO = 10;  // HC-SR04 Echo\n\nconst byte IR_LEFT  = A0;    // left IR module OUT  (LOW = obstacle)\nconst byte IR_RIGHT = A1;    // right IR module OUT (LOW = obstacle)\n\n// ---------------- SETTINGS -------------------------------------------\nconst bool LEFT_REVERSED  = true;    // set from the wheels-in-the-air test: left motors are wired the other way round\nconst bool RIGHT_REVERSED = false;\n\nconst int  CRUISE_SPEED = 160;       // normal speed (0-255)\nconst int  SLOW_SPEED   = 110;       // speed when something is getting near\nconst int  SLOW_CM      = 45;        // slow down below this distance\nconst int  STOP_CM      = 22;        // stop below this distance\nconst unsigned long START_DELAY_MS = 3000;  // wait after switching on\nconst byte IR_SAMPLES_NEEDED = 14;          // an IR obstacle counts only if 14 of the last 16 checks (~0.16 s) see it: ignores a flickering sensor\nconst unsigned long CLEAR_MS       = 300;   // the way must stay clear this long before driving on\n// ---------------------------------------------------------------------\n\nint  distanceCm = 999;                    // latest ultrasonic reading (999 = nothing in range)\nbool irLeft = false, irRight = false;     // filtered IR results\nunsigned int irLeftBits = 0, irRightBits = 0;   // last 16 IR checks, 1 = saw something\nbyte nearPings = 0;                       // ultrasonic pings in a row closer than STOP_CM\nunsigned long lastSonar = 0, lastIr = 0, lastStatus = 0, clearSince = 0;\nbool paused = false, stopped = true;\n\nvoid setup() {\n  pinMode(LEFT_EN, OUTPUT);  pinMode(LEFT_IN1, OUTPUT);  pinMode(LEFT_IN2, OUTPUT);\n  pinMode(RIGHT_EN, OUTPUT); pinMode(RIGHT_IN1, OUTPUT); pinMode(RIGHT_IN2, OUTPUT);\n  drive(0);\n  pinMode(SONAR_TRIG, OUTPUT); digitalWrite(SONAR_TRIG, LOW);\n  pinMode(SONAR_ECHO, INPUT);\n  pinMode(IR_LEFT, INPUT_PULLUP);         // an unplugged sensor reads \"clear\"\n  pinMode(IR_RIGHT, INPUT_PULLUP);\n  Serial.begin(9600);\n  Serial.println(\"4WD ROBOT - forward + stop for obstacles. Starting in 3 s (S = stop, G = go)\");\n  delay(START_DELAY_MS);\n  clearSince = millis();\n}\n\nvoid loop() {\n  readSensors();\n  while (Serial.available()) {\n    char c = Serial.read();\n    if (c == 'S' || c == 's') { paused = true;  Serial.println(\"PAUSED\"); }\n    if (c == 'G' || c == 'g') { paused = false; Serial.println(\"GO\"); }\n  }\n\n  bool blocked = nearPings >= 2 || irLeft || irRight;   // ultrasonic: two close pings in a row\n  unsigned long now = millis();\n  if (blocked) clearSince = now;\n\n  if (paused || blocked) {\n    drive(0);\n    if (!stopped && !paused) { Serial.println(irLeft ? \"STOP: left IR\" : irRight ? \"STOP: right IR\" : \"STOP: obstacle ahead\"); }\n    stopped = true;\n  } else if (now - clearSince >= CLEAR_MS) {\n    drive(distanceCm < SLOW_CM ? SLOW_SPEED : CRUISE_SPEED);\n    if (stopped) Serial.println(\"clear - driving\");\n    stopped = false;\n  }\n  printStatus();\n}\n\n// Both sides forward at the same speed (0 = stop).\nvoid drive(int speed) {\n  setSide(LEFT_EN,  LEFT_IN1,  LEFT_IN2,  speed, LEFT_REVERSED);\n  setSide(RIGHT_EN, RIGHT_IN1, RIGHT_IN2, speed, RIGHT_REVERSED);\n}\n\nvoid setSide(byte en, byte in1, byte in2, int speed, bool reversed) {\n  if (speed <= 0) { digitalWrite(in1, LOW); digitalWrite(in2, LOW); analogWrite(en, 0); return; }\n  digitalWrite(in1, reversed ? LOW : HIGH);\n  digitalWrite(in2, reversed ? HIGH : LOW);\n  analogWrite(en, constrain(speed, 0, 255));\n}\n\nvoid readSensors() {\n  unsigned long now = millis();\n  // IR: LOW means obstacle. Check every 10 ms, keep the last 16 results, and only believe an obstacle\n  // when nearly all of them agree. Once seen, it stays \"seen\" until at most half of the checks see it.\n  if (now - lastIr >= 10) {\n    lastIr = now;\n    irLeftBits  = (irLeftBits  << 1) | (digitalRead(IR_LEFT)  == LOW);\n    irRightBits = (irRightBits << 1) | (digitalRead(IR_RIGHT) == LOW);\n    byte l = countBits(irLeftBits), r = countBits(irRightBits);\n    if (l >= IR_SAMPLES_NEEDED) irLeft = true;  else if (l <= 8) irLeft = false;\n    if (r >= IR_SAMPLES_NEEDED) irRight = true; else if (r <= 8) irRight = false;\n  }\n\n  if (now - lastSonar >= 60) {                    // HC-SR04 needs ~60 ms between pings\n    lastSonar = now;\n    digitalWrite(SONAR_TRIG, HIGH); delayMicroseconds(10); digitalWrite(SONAR_TRIG, LOW);\n    unsigned long us = pulseIn(SONAR_ECHO, HIGH, 25000UL);   // 25 ms = about 4 m\n    distanceCm = (us == 0) ? 999 : (int)(us / 58);\n    nearPings = distanceCm < STOP_CM ? min(nearPings + 1, 9) : 0;\n  }\n}\n\nbyte countBits(unsigned int v) { byte n = 0; while (v) { n += v & 1; v >>= 1; } return n; }\n\nvoid printStatus() {\n  if (millis() - lastStatus < 500) return;\n  lastStatus = millis();\n  Serial.print(\"dist \");\n  if (distanceCm >= 999) Serial.print(\"--\"); else Serial.print(distanceCm);\n  Serial.print(\" cm | IR L:\"); Serial.print(irLeft ? \"X\" : \"-\");\n  Serial.print(\" R:\");         Serial.print(irRight ? \"X\" : \"-\");\n  Serial.print(\" | \");         Serial.println(paused ? \"PAUSED\" : stopped ? \"STOPPED\" : \"DRIVING\");\n}\n"</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="robot_engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var E = window.RobotEngine;
+  if (!E) { document.body.insertAdjacentHTML('afterbegin', '<p style="padding:20px;color:#f87171">The robot engine did not load. Reload the page.</p>'); return; }
+  var STEPS = E.STEPS, N = STEPS.length, COLORS = E.COLORS, CN = E.COLOR_NAMES;
+  var PHASES = []; STEPS.forEach(function (s) { if (PHASES.indexOf(s.phase) < 0) PHASES.push(s.phase); });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ------------------------------------------------------------------ progress (this device only)
+  var KEY = 'roboBuildLab.v1', state = { done: {}, cur: 0, checks: {} };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) state = Object.assign(state, saved); } catch (e) { }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { } }
+  function doneCount() { return STEPS.filter(function (s) { return state.done[s.id]; }).length; }
+  function nextOpen() { for (var i = 0; i < N; i++) if (!state.done[STEPS[i].id]) return i + 1; return N; }
+  function phaseStats(ph) { var list = STEPS.filter(function (s) { return s.phase === ph; }); return { total: list.length, done: list.filter(function (s) { return state.done[s.id]; }).length }; }
+
+  // ------------------------------------------------------------------ navigation
+  var VIEWS = ['dashboard', 'steps', 'build', 'wiring', 'components', 'learn', 'code', 'exam', 'progress'];
+  var engine = null, currentView = null;
+  function show(view) {
+    if (VIEWS.indexOf(view) < 0) view = 'dashboard';
+    currentView = view;
+    VIEWS.forEach(function (v) { $('view-' + v).classList.toggle('on', v === view); });
+    document.querySelectorAll('#nav button, #tabbar [data-view], #moreSheet [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
+    $('moreBtn').classList.toggle('on', MORE.indexOf(view) >= 0);
+    $('topTitle').textContent = TITLES[view];
+    VIEWS.forEach(function (v) { document.body.classList.toggle('v-' + v, v === view); });
+    setTimeout(updateInset, 0);
+    $('app').classList.remove('drawer');
+    if (view === 'build') ensureEngine(); else if (engine) engine.setActive(false);
+    if (view === 'build' && engine) engine.setActive(true);
+    if (view === 'dashboard') renderDashboard();
+    if (view === 'steps') renderSteps();
+    if (view === 'progress') renderProgress();
+    try { if (location.hash !== '#' + view) history.replaceState(null, '', '#' + view); } catch (e) { }
+    if (view !== 'build') window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('#nav button').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-view')); }); });
+  document.addEventListener('click', function (e) { var t = e.target.closest('[data-go]'); if (t) show(t.getAttribute('data-go')); });
+  $('collapse').addEventListener('click', function () { $('app').classList.toggle('collapsed'); this.textContent = $('app').classList.contains('collapsed') ? '⇥' : '⇤'; setTimeout(function () { engine && engine.resize(); }, 50); });
+  // phone UI: tab bar, More sheet, page title
+  var PHONE = window.matchMedia ? matchMedia('(max-width: 760px), (max-height: 520px) and (pointer: coarse)') : { matches: false };
+  var TITLES = { dashboard: 'Dashboard', steps: 'Build Robot', build: '3D Tutorial', wiring: 'Wiring', components: 'Components', learn: 'Learn Electronics', code: 'Code', exam: 'Quick Revision', progress: 'Progress' };
+  var MORE = ['components', 'learn', 'code', 'exam', 'progress'];
+  document.querySelectorAll('#tabbar [data-view], #moreSheet [data-view]').forEach(function (b) { b.addEventListener('click', function () { closeMore(); show(b.getAttribute('data-view')); }); });
+  function openMore() { $('moreSheet').classList.add('on'); }
+  function closeMore() { if ($('moreSheet').classList.contains('on')) { $('moreSheet').classList.remove('on'); } }
+  $('moreBtn').addEventListener('click', function () { if ($('moreSheet').classList.contains('on')) closeMore(); else openMore(); });
+  $('moreSheet').addEventListener('click', function (e) { if (e.target === this) closeMore(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMore(); });
+
+  function openStep(n) { state.cur = n; save(); show('build'); if (engine) engine.go(n); }
+
+  // ------------------------------------------------------------------ 3D builder
+  function ensureEngine() {
+    if (engine) return;
+    if (!window.THREE || !THREE.OrbitControls) { $('loading3d').innerHTML = '<div>3D could not load. Check the internet connection and reload.</div>'; return; }
+    var fonts = document.fonts && document.fonts.load ? Promise.race([Promise.all([document.fonts.load('700 40px "JetBrains Mono"'), document.fonts.load('700 40px "Chakra Petch"')]), new Promise(function (r) { setTimeout(r, 2500); })]) : Promise.resolve();
+    fonts.then(function () {
+      try {
+        engine = E.create({ canvas: $('scene'), onStep: onStep, onMode: onMode });
+      } catch (err) { $('loading3d').innerHTML = '<div>This device can’t show 3D (' + esc(err.message) + ').</div>'; return; }
+      $('loading3d').style.display = 'none';
+      if (PHONE.matches) setDetails(false);   // phones start with the compact step sheet
+      engine.go(state.cur || 0);
+      updateInset();
+      engine.setActive(currentView === 'build');
+      if (pendingPart) { engine.showPart(pendingPart); pendingPart = null; }
+    });
+  }
+  var pendingPart = null;
+  function showPartIn3D(key) { show('build'); if (engine) engine.showPart(key); else pendingPart = key; }
+
+  function onStep(n, s) {
+    state.cur = n; save();
+    var fl = $('flash'); fl.classList.add('on'); setTimeout(function () { fl.classList.remove('on'); }, 30);
+    $('scNum').textContent = $('restoreNum').textContent = n + ' / ' + N;
+    $('stepStatText').textContent = n === 0 ? 'Overview' : 'Step ' + n + ' of ' + N + (state.done[s.id] ? ' · done' : '');
+    $('prevBtn').disabled = n === 0;
+    $('nextBtn').textContent = n === 0 ? 'Start ▶' : n === N ? 'Finish ✓' : 'Next ▶';
+    if (!s) {
+      $('scPhase').textContent = 'Overview'; $('scTitle').textContent = 'Let’s build a robot';
+      $('scKid').textContent = 'This is the robot you will build. Spin it. Zoom in. Press Start.';
+      $('scDoText').textContent = 'Press Start.'; $('scWires').innerHTML = ''; $('scGrown').innerHTML = 'Battery switch stays OFF until the very end. Exact pins and holes are shown here in every step.';
+      $('learnBtn').style.display = 'none'; $('doneBtn').style.display = 'none';
+    } else {
+      $('scPhase').textContent = s.phase; $('scTitle').textContent = s.title; $('scKid').textContent = s.kid;
+      var d = $('scDo'); d.style.animation = 'none'; void d.offsetWidth; d.style.animation = '';
+      $('scDoText').textContent = s.doNow;
+      $('scWires').innerHTML = (s.wires || []).map(function (w) { return '<span class="wirechip"><i style="background:' + COLORS[w[2]] + '"></i>' + CN[w[2]] + ' wire: match the ' + CN[w[2]] + ' rings</span>'; }).join('');
+      $('scGrown').innerHTML = s.grown + (s.why ? '<p style="margin-top:6px"><b style="color:var(--ink)">Why:</b> ' + esc(s.why) + '</p>' : '');
+      $('learnBtn').style.display = s.learn ? '' : 'none'; $('learnBtn').onclick = function () { openComponent(s.learn); };
+      $('doneBtn').style.display = '';
+      $('doneBtn').textContent = state.done[s.id] ? '↺ Mark not done' : '✓ Mark complete';
+    }
+    renderDots(); updateMini();
+  }
+  function renderDots() {
+    var c = $('stepdots'); if (!c.children.length) STEPS.forEach(function (s) { var i = document.createElement('i'); i.title = s.n + '. ' + s.title; i.addEventListener('click', function () { engine && engine.go(s.n); }); c.appendChild(i); });
+    Array.prototype.forEach.call(c.children, function (el, i) { el.className = (state.done[STEPS[i].id] ? 'done ' : '') + (i + 1 === state.cur ? 'now' : ''); });
+  }
+  $('nextBtn').addEventListener('click', function () {
+    if (!engine) return; var n = engine.cur();
+    if (n > 0) { state.done[STEPS[n - 1].id] = true; save(); }
+    if (n < N) engine.next(); else { onStep(n, STEPS[n - 1]); show('progress'); }
+  });
+  $('prevBtn').addEventListener('click', function () { engine && engine.prev(); });
+  $('doneBtn').addEventListener('click', function () { if (!engine) return; var n = engine.cur(); if (!n) return; var id = STEPS[n - 1].id; state.done[id] = !state.done[id]; save(); onStep(n, STEPS[n - 1]); });
+  $('resetBtn').addEventListener('click', function () { engine && engine.resetView(); });
+  document.querySelectorAll('[data-zoom]').forEach(function (b) { b.addEventListener('click', function () { if (!engine) return; var z = b.getAttribute('data-zoom'); engine.zoom(z, { hideWires: z !== 'under' }); $('stepStatText').textContent = z === 'under' ? 'Looking underneath' : 'Inspecting · wires hidden (Reset view brings them back)'; }); });
+  function setCardHidden(h) {
+    $('stepcard').classList.toggle('gone', h); $('restoreWrap').classList.toggle('on', h); updateInset();
+    $('restoreNum').textContent = $('scNum').textContent;
+    (h ? $('cardRestore') : $('cardMin')).focus({ preventScroll: true });
+  }
+  $('cardMin').addEventListener('click', function () { setCardHidden(true); });
+  $('cardRestore').addEventListener('click', function () { setCardHidden(false); });
+  // phone step sheet: tap the handle to show more or less, swipe up for details, swipe down to shrink or hide
+  function setDetails(show) { $('stepcard').classList.toggle('min', !show); $('minBtn').textContent = show ? 'Hide details' : 'Show details'; }
+  (function () {
+    var h = $('sheetHandle'), y0 = null;
+    h.addEventListener('pointerdown', function (e) { y0 = e.clientY; try { h.setPointerCapture(e.pointerId); } catch (err) { } });
+    h.addEventListener('pointerup', function (e) {
+      if (y0 === null) return; var dy = e.clientY - y0, min = $('stepcard').classList.contains('min'); y0 = null;
+      if (dy < -25) setDetails(true); else if (dy > 25) { if (min) setCardHidden(true); else setDetails(false); } else setDetails(min);
+    });
+    h.addEventListener('pointercancel', function () { y0 = null; });
+  })();
+  // keep the robot centred in the part of the 3D view the phone sheet does not cover
+  function updateInset() {
+    if (!engine) return;
+    var card = $('stepcard'), st = $('stage');
+    if (!PHONE.matches || currentView !== 'build' || card.classList.contains('gone')) { engine.setViewInset(0, 0); return; }
+    var c = card.getBoundingClientRect(), s = st.getBoundingClientRect();
+    if (c.height > s.height * 0.6 && c.right < s.right - 40) engine.setViewInset(0, c.right - s.left);   // docked on the left (phone sideways)
+    else engine.setViewInset(Math.max(0, s.bottom - c.top), 0);
+  }
+  if (window.ResizeObserver) { new ResizeObserver(updateInset).observe($('stepcard')); new ResizeObserver(updateInset).observe($('stage')); }
+  if (PHONE.addEventListener) PHONE.addEventListener('change', updateInset);
+  $('minBtn').addEventListener('click', function () { var m = $('stepcard').classList.toggle('min'); this.textContent = m ? 'Show details' : 'Hide details'; });
+  $('stepcard').addEventListener('click', function (e) { if (e.target === $('scTitle') && $('stepcard').classList.contains('min')) $('minBtn').click(); });
+
+  // drag modes + SHIFT
+  var baseMode = 'spin';
+  function onMode(m) {
+    var eff = m.effective, stat = $('modeStat');
+    $('modeStatText').textContent = m.shift ? 'SHIFT held · ' + (eff === 'move' ? 'Move (pan) mode' : 'Rotate mode') : (eff === 'move' ? 'Move (pan) mode' : 'Rotate mode');
+    stat.classList.toggle('shift', m.shift);
+    $('modeText').textContent = 'Drag: ' + (eff === 'move' ? 'Move' : 'Rotate') + (m.shift ? ' (Shift)' : '');
+    $('modeBtn').classList.toggle('on', eff === 'move');
+  }
+  $('modeBtn').addEventListener('click', function () { baseMode = baseMode === 'spin' ? 'move' : 'spin'; engine && engine.setMode(baseMode); });
+  function shiftKey(on) { if (engine && currentView === 'build') engine.setShift(on); }
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Shift') { shiftKey(true); return; }
+    if (currentView !== 'build' || !engine || /input|textarea/i.test((e.target.tagName || ''))) return;
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    else if (e.key === 'ArrowLeft') engine.prev();
+    else if (e.key === 'f' || e.key === 'F') toggleFs();
+    else if (e.key === 'r' || e.key === 'R') engine.resetView();
+    else if (e.key === 'h' || e.key === 'H') setCardHidden(!$('stepcard').classList.contains('gone'));
+  });
+  window.addEventListener('keyup', function (e) { if (e.key === 'Shift') shiftKey(false); });
+  window.addEventListener('blur', function () { shiftKey(false); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) shiftKey(false); });
+  // Mouse events report the real Shift state too, so the badge never gets stuck
+  $('scene').addEventListener('pointermove', function (e) { if (engine) engine.setShift(e.shiftKey); });
+
+  // fullscreen: real browser fullscreen when allowed, otherwise fill the window
+  function isFs() { return !!(document.fullscreenElement || $('stage').classList.contains('fs')); }
+  function toggleFs() {
+    var st = $('stage');
+    if (isFs()) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(function () { });
+      st.classList.remove('fs');
+    } else {
+      st.classList.add('fs');
+      if (st.requestFullscreen) st.requestFullscreen().catch(function () { /* stays as full-window overlay */ });
+    }
+    setTimeout(fsLabel, 60);
+  }
+  function fsLabel() { var on = isFs(); $('fsText').textContent = on ? 'Exit fullscreen' : 'Fullscreen'; $('fsBtn').classList.toggle('on', on); engine && engine.resize(); }
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) $('stage').classList.remove('fs'); fsLabel(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('stage').classList.contains('fs') && !document.fullscreenElement) { $('stage').classList.remove('fs'); fsLabel(); } });
+  $('fsBtn').addEventListener('click', toggleFs);
+
+  // ------------------------------------------------------------------ dashboard
+  var MODULES = [
+    ['build', '3D Tutorial', 'Build the robot one action at a time with a glowing guide.', '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>'],
+    ['wiring', 'Wiring', 'The full diagram, every wire, and why it goes there.', '<path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/>'],
+    ['components', 'Components', 'What the Arduino, L298N, motors and sensors do.', '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4"/>'],
+    ['learn', 'Learn Electronics', 'Voltage, ground, PWM, H-bridges, sensors.', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'],
+    ['code', 'Code', 'The Arduino sketch explained block by block.', '<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>'],
+    ['exam', 'Quick Revision', 'Exam-style questions with answers.', '<path d="M4 5h16v12H8l-4 3z"/>'],
+    ['progress', 'Progress', 'Completed steps and achievements.', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>']
+  ];
+  $('dashModules').innerHTML = MODULES.map(function (m) { return '<div class="card module" tabindex="0" data-go="' + m[0] + '"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' + m[3] + '</svg></div><h3>' + m[1] + '</h3><p class="note">' + m[2] + '</p></div>'; }).join('');
+  $('dashModules').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.dataset.go) show(e.target.dataset.go); });
+  function updateMini() {
+    var d = doneCount();
+    $('miniProgText').textContent = $('moreProgText').textContent = d + ' / ' + N + ' steps'; $('miniProgBar').style.width = $('moreProgBar').style.width = (100 * d / N) + '%';
+    $('topProg').textContent = d + ' / ' + N;
+  }
+  function renderDashboard() {
+    var d = doneCount(), pct = Math.round(100 * d / N), nx = nextOpen();
+    $('ringArc').setAttribute('stroke-dashoffset', String(314.16 * (1 - d / N))); $('ringPct').textContent = pct + '%';
+    $('dashCount').textContent = d + ' / ' + N + ' steps completed';
+    $('dashCurrent').textContent = d === N ? 'All steps done. Time to drive!' : 'Next: step ' + nx + ' · ' + STEPS[nx - 1].title;
+    $('dashContinueText').textContent = d === 0 ? 'Start Building' : d === N ? 'Open the 3D robot' : 'Continue Building';
+    var wires = 0; STEPS.forEach(function (s) { if (state.done[s.id]) wires += (s.wires || []).length; });
+    $('kpiWires').textContent = wires + '/' + E.CONNECTIONS.length;
+    $('kpiPhases').textContent = PHASES.filter(function (p) { var st = phaseStats(p); return st.done === st.total; }).length + '/' + PHASES.length;
+    $('dashPhases').innerHTML = PHASES.map(function (p) { var st = phaseStats(p); return '<div class="phase-row"><span>' + esc(p) + '</span><span class="bar"><i style="width:' + (100 * st.done / st.total) + '%"></i></span><span class="n">' + st.done + '/' + st.total + '</span></div>'; }).join('');
+    var s = STEPS[nx - 1];
+    $('dashStep').innerHTML = '<div class="chip cy">Step ' + s.n + ' · ' + esc(s.phase) + '</div><h3 style="margin:10px 0 6px">' + esc(s.title) + '</h3><p>' + esc(s.kid) + '</p><div class="donow" style="margin-top:10px"><b>Do this now</b><span>' + esc(s.doNow) + '</span></div><div style="margin-top:12px"><button class="btn primary sm" type="button" id="dashOpen">Open in 3D ▶</button></div>';
+    $('dashOpen').addEventListener('click', function () { openStep(nx); });
+    updateMini();
+  }
+  $('dashContinue').addEventListener('click', function () { openStep(doneCount() === N ? 0 : nextOpen()); });
+  $('stepsContinue').addEventListener('click', function () { openStep(nextOpen()); });
+
+  // ------------------------------------------------------------------ build overview + progress
+  function stepItems(list) {
+    return list.map(function (s) {
+      var cls = 'stepitem' + (state.done[s.id] ? ' done' : '') + (s.n === nextOpen() && !state.done[s.id] ? ' now' : '');
+      return '<div class="' + cls + '" data-step="' + s.n + '" tabindex="0"><span class="num">' + (state.done[s.id] ? '✓' : s.n) + '</span><span><span class="t">' + esc(s.title) + '</span><br><span class="s">' + esc(s.doNow) + '</span></span><span class="chip">' + ((s.wires || []).length ? (s.wires.length + ' wire') : (s.parts ? 'part' : 'check')) + '</span></div>';
+    }).join('');
+  }
+  function renderSteps() {
+    $('stepsList').innerHTML = PHASES.map(function (p) { var st = phaseStats(p); return '<div class="phase-block"><h3>' + esc(p) + ' <span class="chip ' + (st.done === st.total ? 'ok' : '') + '">' + st.done + '/' + st.total + '</span></h3><div class="steplist">' + stepItems(STEPS.filter(function (s) { return s.phase === p; })) + '</div></div>'; }).join('');
+  }
+  function bindStepClicks(id) { $(id).addEventListener('click', function (e) { var t = e.target.closest('[data-step]'); if (t) openStep(+t.dataset.step); }); $(id).addEventListener('keydown', function (e) { var t = e.target.closest('[data-step]'); if (t && e.key === 'Enter') openStep(+t.dataset.step); }); }
+  bindStepClicks('stepsList'); bindStepClicks('progSteps');
+  var ACH = [
+    ['Chassis', 'Motor prep', 'Both motor tabs wired'], ['Motor driver', 'Motor master', 'All 8 motor wires in the L298N'], ['Power', 'Power on', 'Battery and switch wired safely'],
+    ['Brain & breadboard', 'Brain connected', 'Arduino and breadboard powered'], ['Control wires', 'Signal path', 'Arduino talks to the L298N'], ['Eyes (HC-SR04)', 'Eyes open', 'Ultrasonic sensor wired'],
+    ['Whiskers (IR)', 'Whiskers on', 'Both IR sensors wired'], ['Finish', 'Robot driver', 'Tested and driving']
+  ];
+  function renderProgress() {
+    var d = doneCount(); $('progTitle').textContent = d + ' / ' + N + ' steps completed';
+    $('achList').innerHTML = ACH.map(function (a, i) { var st = phaseStats(a[0]), got = st.done === st.total; return '<div class="badge-ach' + (got ? ' got' : '') + '"><div class="medal">' + (i + 1) + '</div><div><b>' + a[1] + '</b><div class="note">' + a[2] + ' · ' + st.done + '/' + st.total + '</div></div></div>'; }).join('');
+    $('progSteps').innerHTML = '<div class="steplist">' + stepItems(STEPS) + '</div>';
+    updateMini();
+  }
+  function closeReset() { $('resetModal').classList.remove('on'); $('resetProg').focus(); }
+  $('resetProg').addEventListener('click', function () { $('resetModal').classList.add('on'); $('resetNo').focus(); });
+  $('resetNo').addEventListener('click', closeReset);
+  $('resetModal').addEventListener('click', function (e) { if (e.target === this) closeReset(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('resetModal').classList.contains('on')) closeReset(); });
+  $('resetYes').addEventListener('click', function () { state = { done: {}, cur: 0, checks: {} }; save(); closeReset(); renderProgress(); renderChecks(); if (engine) engine.go(0); });
+
+  // ------------------------------------------------------------------ wiring
+  var C = E.CONNECTIONS;
+  (function fullDiagram() {
+    var W = 1100, H = 640, o = [];
+    function bx(x, y, w, h, title, sub, fill) { o.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="10" fill="' + (fill || '#0d1830') + '" stroke="#2b4670"/>', '<text x="' + (x + 12) + '" y="' + (y + 22) + '" fill="#e3ecf8" font-family="Chakra Petch" font-weight="700" font-size="15">' + title + '</text>'); if (sub) o.push('<text x="' + (x + 12) + '" y="' + (y + 40) + '" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="11.5">' + sub + '</text>'); }
+    function pin(x, y, lab, anchor, dy) { o.push('<circle cx="' + x + '" cy="' + y + '" r="4.5" fill="#d4af37" stroke="#7a5f12"/>', '<text x="' + x + '" y="' + (y + (dy || -9)) + '" text-anchor="' + (anchor || 'middle') + '" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5" font-weight="600">' + lab + '</text>'); }
+    var P = {};
+    function A(k, x, y, dx, dy) { P[k] = [x, y, dx, dy]; }
+    // boxes
+    bx(40, 30, 190, 80, 'Left KY-032', 'IR whisker, front-left'); bx(320, 30, 210, 80, 'HC-SR04', 'Ultrasonic eyes, front'); bx(560, 30, 190, 80, 'Right KY-032', 'IR whisker, front-right');
+    bx(790, 30, 280, 200, 'Arduino Uno', 'The brain', '#0e2342');
+    bx(400, 300, 300, 200, 'L298N', 'Motor driver', '#2a0f16');
+    bx(40, 320, 200, 120, 'Left motors', 'front + back, together'); bx(860, 320, 200, 120, 'Right motors', 'front + back, together');
+    bx(40, 530, 230, 80, 'Battery 2 × 18650', '7.4 V'); bx(310, 540, 130, 64, 'Switch', '3 legs');
+    // breadboard rails
+    o.push('<rect x="30" y="160" width="720" height="66" rx="8" fill="#e9e7df" opacity=".08" stroke="#3a4f73"/>', '<text x="40" y="154" fill="#8b9cb8" font-family="JetBrains Mono" font-size="11">BREADBOARD RAILS (outer edge)</text>');
+    o.push('<line x1="40" y1="178" x2="740" y2="178" stroke="#e5383b" stroke-width="5" stroke-linecap="round"/>', '<text x="745" y="182" fill="#e5383b" font-family="JetBrains Mono" font-size="12" font-weight="700">+ 5V</text>');
+    o.push('<line x1="40" y1="210" x2="740" y2="210" stroke="#3b82f6" stroke-width="5" stroke-linecap="round"/>', '<text x="745" y="214" fill="#3b82f6" font-family="JetBrains Mono" font-size="12" font-weight="700">− GND</text>');
+    // pins
+    [['ILG', 80, 'GND'], ['ILV', 130, 'VCC'], ['ILO', 180, 'OUT']].forEach(function (p) { pin(p[1], 110, p[2], 'middle', 18); A(p[0], p[1], 110, 0, 1); });
+    [['SV', 355, 'Vcc'], ['ST', 405, 'Trig'], ['SE', 455, 'Echo'], ['SG', 505, 'Gnd']].forEach(function (p) { pin(p[1], 110, p[2], 'middle', 18); A(p[0], p[1], 110, 0, 1); });
+    [['IRG', 600, 'GND'], ['IRV', 650, 'VCC'], ['IRO', 700, 'OUT']].forEach(function (p) { pin(p[1], 110, p[2], 'middle', 18); A(p[0], p[1], 110, 0, 1); });
+    [['D5', 815, '5'], ['D6', 845, '6'], ['D7', 875, '7'], ['D8', 905, '8'], ['D9', 935, '9'], ['D10', 965, '10'], ['D12', 1005, '12'], ['D13', 1040, '13']].forEach(function (p) { pin(p[1], 230, p[2], 'middle', 18); A(p[0], p[1], 230, 0, 1); });
+    [['U5V', 70, '5V'], ['UGND', 100, 'GND'], ['A0', 140, 'A0'], ['A1', 170, 'A1']].forEach(function (p) { pin(790, p[1], p[2], 'start', 4); o.pop(); o.push('<text x="800" y="' + (p[1] + 4) + '" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5" font-weight="600">' + p[2] + '</text>'); A(p[0], 790, p[1], -1, 0); });
+    [['ENA', 430], ['IN1', 470], ['IN2', 510], ['IN3', 560], ['IN4', 600], ['ENB', 640]].forEach(function (p) { pin(p[1], 300, p[0], 'middle', 18); A(p[0], p[1], 300, 0, -1); });
+    [['OUT1', 360], ['OUT2', 420]].forEach(function (p) { pin(400, p[1], p[0], 'start', 4); o.pop(); o.push('<text x="410" y="' + (p[1] + 4) + '" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5" font-weight="600">' + p[0] + '</text>'); A(p[0], 400, p[1], -1, 0); });
+    [['OUT3', 360], ['OUT4', 420]].forEach(function (p) { pin(700, p[1], p[0], 'end', 4); o.pop(); o.push('<text x="690" y="' + (p[1] + 4) + '" text-anchor="end" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5" font-weight="600">' + p[0] + '</text>'); A(p[0], 700, p[1], 1, 0); });
+    [['12V', 480], ['LGND', 550, 'GND'], ['L5V', 620, '5V']].forEach(function (p) { pin(p[1], 500, p[2] || p[0], 'middle', -9); A(p[0], p[1], 500, 0, 1); });
+    [['MLr', 365, 'red'], ['MLb', 405, 'black']].forEach(function (p) { pin(240, p[1], p[2], 'end', 4); o.pop(); o.push('<text x="232" y="' + (p[1] + 4) + '" text-anchor="end" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5">' + p[2] + '</text>'); A(p[0], 240, p[1], 1, 0); });
+    [['MRr', 365, 'red'], ['MRb', 405, 'black']].forEach(function (p) { pin(860, p[1], p[2], 'start', 4); o.pop(); o.push('<text x="868" y="' + (p[1] + 4) + '" fill="#cfe2ff" font-family="JetBrains Mono" font-size="10.5">' + p[2] + '</text>'); A(p[0], 860, p[1], -1, 0); });
+    [['Bm', 90, '−'], ['Bp', 230, '+']].forEach(function (p) { pin(p[1], 530, p[2], 'middle', -9); A(p[0], p[1], 530, 0, -1); });
+    [['SW1', 340, '1'], ['SWm', 375, 'mid'], ['SW3', 410, '3']].forEach(function (p) { pin(p[1], 540, p[2], 'middle', 34); A(p[0], p[1], 540, 0, -1); });
+    function rail(k, x, plus) { A(k, x, plus ? 178 : 210, 0, plus ? -1 : 1); o.push('<circle cx="' + x + '" cy="' + (plus ? 178 : 210) + '" r="4" fill="#fff"/>'); }
+    var lines = [];
+    function L(a, b, col, k) { lines.push([a, b, col, k]); }
+    rail('r_ILV', 130, true); rail('r_ILG', 80, false); rail('r_SV', 355, true); rail('r_SG', 505, false); rail('r_IRV', 650, true); rail('r_IRG', 600, false);
+    rail('r_L5V', 690, true); rail('r_LGND', 560, false); rail('r_U5V', 735, true); rail('r_UGND', 715, false);
+    L('ILV', 'r_ILV', 'RED'); L('ILG', 'r_ILG', 'BLACK'); L('SV', 'r_SV', 'RED'); L('SG', 'r_SG', 'BLACK'); L('IRV', 'r_IRV', 'RED'); L('IRG', 'r_IRG', 'BLACK');
+    L('ILO', 'A0', 'BROWN', 120); L('IRO', 'A1', 'GREY', 40); L('ST', 'D9', 'CYAN', 150); L('SE', 'D10', 'PINK', 170);
+    L('L5V', 'r_L5V', 'RED', 140); L('LGND', 'r_LGND', 'BLACK', 140); L('U5V', 'r_U5V', 'RED', 60); L('UGND', 'r_UGND', 'BLACK', 60);
+    L('D5', 'ENA', 'ORANGE', 50); L('D7', 'IN1', 'YELLOW', 50); L('D8', 'IN2', 'GREEN', 50); L('D12', 'IN3', 'BLUE', 50); L('D13', 'IN4', 'PURPLE', 50); L('D6', 'ENB', 'WHITE', 50);
+    L('MLr', 'OUT1', 'RED', 60); L('MLb', 'OUT2', 'BLACK', 60); L('MRr', 'OUT3', 'RED', 60); L('MRb', 'OUT4', 'BLACK', 60);
+    L('Bm', 'LGND', 'BLACK', 70); L('Bp', 'SWm', 'RED', 40); L('SW3', '12V', 'RED', 60);
+    lines.forEach(function (l) {
+      var a = P[l[0]], b = P[l[1]], k = l[3] || 30;
+      var d = 'M' + a[0] + ' ' + a[1] + ' C' + (a[0] + a[2] * k) + ' ' + (a[1] + a[3] * k) + ' ' + (b[0] + b[2] * k) + ' ' + (b[1] + b[3] * k) + ' ' + b[0] + ' ' + b[1];
+      o.unshift('<path d="' + d + '" fill="none" stroke="' + COLORS[l[2]] + '" stroke-width="3" stroke-linecap="round" opacity=".92"/>');
+    });
+    o.unshift('<rect width="' + W + '" height="' + H + '" fill="#070d19"/>');
+    $('fullDiagram').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Complete wiring diagram">' + o.join('') + '</svg>';
+  })();
+  function miniSvg(c) {
+    var col = COLORS[c.color];
+    return '<svg viewBox="0 0 300 70" aria-hidden="true"><rect x="2" y="12" width="118" height="46" rx="8" fill="#0d1830" stroke="#2b4670"/><text x="12" y="31" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="10.5">' + esc(c.from[0]) + '</text><text x="12" y="48" fill="#e3ecf8" font-family="JetBrains Mono" font-size="11" font-weight="700">' + esc(c.from[1].length > 16 ? c.from[1].slice(0, 15) + '…' : c.from[1]) + '</text>' +
+      '<rect x="180" y="12" width="118" height="46" rx="8" fill="#0d1830" stroke="#2b4670"/><text x="190" y="31" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="10.5">' + esc(c.to[0]) + '</text><text x="190" y="48" fill="#e3ecf8" font-family="JetBrains Mono" font-size="11" font-weight="700">' + esc(c.to[1].length > 16 ? c.to[1].slice(0, 15) + '…' : c.to[1]) + '</text>' +
+      '<line x1="120" y1="35" x2="180" y2="35" stroke="' + col + '" stroke-width="5" stroke-linecap="round"/><line class="flowline" x1="120" y1="35" x2="180" y2="35" stroke="#ffffff" stroke-opacity=".55" stroke-width="2"/><circle cx="120" cy="35" r="5" fill="' + col + '"/><circle cx="180" cy="35" r="5" fill="' + col + '"/></svg>';
+  }
+  $('connList').innerHTML = C.map(function (c) {
+    return '<div class="conn">' + miniSvg(c) + '<div><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px"><span class="chip"><span class="swatch" style="background:' + COLORS[c.color] + '"></span>' + CN[c.color] + '</span><b>' + esc(c.from[0] + ' ' + c.from[1]) + ' → ' + esc(c.to[0] + ' ' + c.to[1]) + '</b></div><p class="why"><b>Why this connection?</b> ' + esc(c.why) + '</p><button class="btn sm" type="button" style="margin-top:6px" data-step3d="' + c.step + '">Show in 3D (step ' + c.step + ')</button></div></div>';
+  }).join('');
+  $('connList').addEventListener('click', function (e) { var t = e.target.closest('[data-step3d]'); if (t) openStep(+t.dataset.step3d); });
+  function renderChecks() {
+    $('checkList').innerHTML = C.map(function (c, i) { var id = 'c' + i; return '<label class="checkrow"><input type="checkbox" data-chk="' + id + '"' + (state.checks[id] ? ' checked' : '') + '><span><span class="swatch" style="background:' + COLORS[c.color] + '"></span> ' + esc(c.from[0] + ' ' + c.from[1]) + ' → ' + esc(c.to[0] + ' ' + c.to[1]) + '</span></label>'; }).join('') +
+      '<label class="checkrow"><input type="checkbox" data-chk="caps"' + (state.checks.caps ? ' checked' : '') + '><span>ENA and ENB caps pulled off · 5V-EN cap still on</span></label><label class="checkrow"><input type="checkbox" data-chk="copper"' + (state.checks.copper ? ' checked' : '') + '><span>No bare copper touching a neighbouring screw or pin</span></label>';
+  }
+  $('checkList').addEventListener('change', function (e) { var k = e.target.dataset.chk; if (k) { state.checks[k] = e.target.checked; save(); } });
+  renderChecks();
+  $('wiringTo3d').addEventListener('click', function () { openStep(0); });
+
+  // ------------------------------------------------------------------ components
+  var DIAG = {
+    l298n: '<svg viewBox="0 0 640 300"><rect width="640" height="300" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">ONE CHANNEL = AN “H-BRIDGE” OF 4 SWITCHES</text>' +
+      '<line x1="120" y1="60" x2="380" y2="60" stroke="#e5383b" stroke-width="3"/><text x="390" y="64" fill="#e5383b" font-family="JetBrains Mono" font-size="12">12V (battery +)</text><line x1="120" y1="250" x2="380" y2="250" stroke="#3b82f6" stroke-width="3"/><text x="390" y="254" fill="#3b82f6" font-family="JetBrains Mono" font-size="12">GND</text>' +
+      '<g font-family="JetBrains Mono" font-size="12" fill="#cfe2ff"><rect x="105" y="85" width="40" height="40" rx="6" fill="#123058" stroke="#38d7f5"/><text x="125" y="110" text-anchor="middle">S1</text><rect x="355" y="85" width="40" height="40" rx="6" fill="#123058" stroke="#38d7f5"/><text x="375" y="110" text-anchor="middle">S3</text><rect x="105" y="185" width="40" height="40" rx="6" fill="#123058" stroke="#38d7f5"/><text x="125" y="210" text-anchor="middle">S2</text><rect x="355" y="185" width="40" height="40" rx="6" fill="#123058" stroke="#38d7f5"/><text x="375" y="210" text-anchor="middle">S4</text></g>' +
+      '<path d="M125 60V85M125 125V185M125 225V250M375 60V85M375 125V185M375 225V250" stroke="#8b9cb8" stroke-width="2"/><path d="M125 155H215M285 155H375" stroke="#8b9cb8" stroke-width="2"/><circle cx="250" cy="155" r="34" fill="#151f33" stroke="#ffd21f" stroke-width="2"/><text x="250" y="160" text-anchor="middle" fill="#ffd21f" font-family="Chakra Petch" font-weight="700" font-size="16">M</text><text x="168" y="147" fill="#cfe2ff" font-family="JetBrains Mono" font-size="11">OUT1</text><text x="290" y="147" fill="#cfe2ff" font-family="JetBrains Mono" font-size="11">OUT2</text>' +
+      '<path class="flowline" d="M125 70V150H215" fill="none" stroke="#34d399" stroke-width="3"/><path class="flowline" d="M285 160H375V240" fill="none" stroke="#34d399" stroke-width="3"/>' +
+      '<text x="470" y="120" fill="#34d399" font-family="IBM Plex Sans" font-size="13">S1 + S4 closed:</text><text x="470" y="138" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="13">current flows → forward</text><text x="470" y="170" fill="#ffb86b" font-family="IBM Plex Sans" font-size="13">S3 + S2 closed:</text><text x="470" y="188" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="13">current flows ← backward</text><text x="470" y="220" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="12">IN1/IN2 choose the pair.</text><text x="470" y="238" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="12">ENA switches it on/off fast (PWM).</text></svg>',
+    hcsr04: '<svg viewBox="0 0 640 230"><rect width="640" height="230" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">TRIG → SOUND OUT → ECHO BACK</text><g font-family="JetBrains Mono" font-size="12" fill="#cfe2ff"><text x="20" y="70">Trig</text><path d="M80 75H130V50H150V75H600" fill="none" stroke="#1fc8db" stroke-width="2.5"/><text x="128" y="44" fill="#1fc8db">10 µs</text>' +
+      '<text x="20" y="125">Sound</text><g stroke="#ffd21f" stroke-width="2">' + [0, 1, 2, 3, 4, 5, 6, 7].map(function (i) { return '<line x1="' + (160 + i * 8) + '" y1="112" x2="' + (160 + i * 8) + '" y2="132"/>'; }).join('') + '</g><text x="160" y="150" fill="#ffd21f" font-size="11">8 pulses at 40 kHz</text>' +
+      '<text x="20" y="195">Echo</text><path d="M80 200H240V175H470V200H600" fill="none" stroke="#ff5fae" stroke-width="2.5"/><path d="M240 165H470" stroke="#8b9cb8" stroke-dasharray="4 4"/><text x="300" y="160" fill="#ff5fae">HIGH for time t</text><text x="480" y="190" fill="#8b9cb8" font-size="11">distance (cm) = t (µs) ÷ 58</text></g></svg>',
+    ky032: '<svg viewBox="0 0 640 210"><rect width="640" height="210" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">IR LIGHT BOUNCES BACK = OBSTACLE</text><rect x="40" y="70" width="110" height="80" rx="8" fill="#151515" stroke="#3a3a3a"/><circle cx="150" cy="90" r="9" fill="#e9eef3"/><circle cx="150" cy="130" r="9" fill="#222" stroke="#666"/><text x="52" y="168" fill="#8b9cb8" font-family="JetBrains Mono" font-size="11">KY-032</text>' +
+      '<path class="flowline" d="M160 90L470 105" stroke="#ff5f5f" stroke-width="3" fill="none"/><path class="flowline" d="M470 115L160 130" stroke="#ff9b9b" stroke-width="3" fill="none"/><rect x="470" y="60" width="26" height="110" fill="#3b4a63"/><text x="505" y="120" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="13">obstacle</text>' +
+      '<text x="200" y="80" fill="#ff5f5f" font-family="IBM Plex Sans" font-size="12">invisible IR light out</text><text x="200" y="152" fill="#ff9b9b" font-family="IBM Plex Sans" font-size="12">reflection back in</text><text x="40" y="195" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="13">Seen → OUT = LOW (0 V).  Nothing → OUT = HIGH (5 V).</text></svg>',
+    breadboard: '<svg viewBox="0 0 640 220"><rect width="640" height="220" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">WHICH HOLES ARE JOINED INSIDE</text><rect x="40" y="40" width="560" height="160" rx="8" fill="#e9e7df" opacity=".1" stroke="#3a4f73"/>' +
+      '<line x1="60" y1="58" x2="580" y2="58" stroke="#e5383b" stroke-width="6" stroke-linecap="round" opacity=".85"/><line x1="60" y1="78" x2="580" y2="78" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" opacity=".85"/><text x="590" y="62" fill="#e5383b" font-family="JetBrains Mono" font-size="11">+</text><text x="590" y="82" fill="#3b82f6" font-family="JetBrains Mono" font-size="11">−</text>' +
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (i) { var x = 80 + i * 40; return '<line x1="' + x + '" y1="96" x2="' + x + '" y2="136" stroke="#38d7f5" stroke-width="4" stroke-linecap="round" opacity=".7"/><line x1="' + x + '" y1="152" x2="' + x + '" y2="192" stroke="#38d7f5" stroke-width="4" stroke-linecap="round" opacity=".7"/>'; }).join('') +
+      '<text x="60" y="148" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="11">middle gap: top and bottom halves are NOT joined</text><text x="60" y="214" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="12">Rails run along the length. Each column of 5 holes (a–e or f–j) is joined.</text></svg>',
+    battery: '<svg viewBox="0 0 640 170"><rect width="640" height="170" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">TWO CELLS IN SERIES: VOLTAGES ADD</text><g font-family="JetBrains Mono" font-size="13"><rect x="60" y="60" width="180" height="56" rx="26" fill="#2f7de1"/><text x="150" y="94" text-anchor="middle" fill="#fff">3.7 V</text><rect x="270" y="60" width="180" height="56" rx="26" fill="#2f7de1"/><text x="360" y="94" text-anchor="middle" fill="#fff">3.7 V</text><text x="470" y="94" fill="#34d399">= 7.4 V</text><text x="40" y="94" fill="#3b82f6">−</text><text x="244" y="94" fill="#cfe2ff">+−</text><text x="455" y="94" fill="#e5383b">+</text></g><text x="60" y="150" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="12">Full: 8.4 V · normal: 7.4 V · empty: about 6 V. The L298N uses about 2 V of it.</text></svg>',
+    switch: '<svg viewBox="0 0 640 170"><rect width="640" height="170" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">3-LEG SWITCH: MIDDLE JOINS ONE END</text><g font-family="JetBrains Mono" font-size="12" fill="#cfe2ff"><circle cx="140" cy="110" r="7" fill="#d4af37"/><circle cx="260" cy="110" r="7" fill="#d4af37"/><circle cx="380" cy="110" r="7" fill="#d4af37"/><text x="125" y="140">leg 1</text><text x="240" y="140">middle</text><text x="365" y="140">leg 3</text><line x1="260" y1="110" x2="372" y2="78" stroke="#34d399" stroke-width="4"/><text x="300" y="66" fill="#34d399">ON position</text></g><text x="430" y="100" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="12">battery + → middle</text><text x="430" y="120" fill="#cfe2ff" font-family="IBM Plex Sans" font-size="12">leg 3 → L298N 12V</text><text x="430" y="140" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="12">leg 1 → nothing</text></svg>',
+    motor: '<svg viewBox="0 0 640 170"><rect width="640" height="170" fill="#070d19"/><text x="20" y="26" fill="#38d7f5" font-family="JetBrains Mono" font-size="12" font-weight="700">SWAP THE WIRES = SPIN THE OTHER WAY</text><g font-family="JetBrains Mono" font-size="12"><circle cx="160" cy="95" r="34" fill="#151f33" stroke="#ffd21f" stroke-width="2"/><text x="160" y="100" text-anchor="middle" fill="#ffd21f">M</text><text x="60" y="80" fill="#e5383b">+</text><text x="60" y="118" fill="#3b82f6">−</text><path d="M70 76H126M70 114H126" stroke="#8b9cb8"/><path d="M200 70a40 40 0 0 1 0 50" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#ar)"/><text x="215" y="100" fill="#34d399">forward</text>' +
+      '<circle cx="460" cy="95" r="34" fill="#151f33" stroke="#ffd21f" stroke-width="2"/><text x="460" y="100" text-anchor="middle" fill="#ffd21f">M</text><text x="360" y="80" fill="#3b82f6">−</text><text x="360" y="118" fill="#e5383b">+</text><path d="M370 76H426M370 114H426" stroke="#8b9cb8"/><path d="M500 120a40 40 0 0 0 0-50" fill="none" stroke="#ffb86b" stroke-width="3"/><text x="515" y="100" fill="#ffb86b">backward</text></g><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#34d399"/></marker></defs></svg>'
+  };
+  var COMPS = [
+    { key: 'arduino', name: 'Arduino Uno', nick: 'the Brain', part: 'brain', color: '#3b82f6',
+      simple: 'A tiny computer. It reads the sensors, decides what to do, and tells the motor driver which way to turn the wheels.',
+      why: 'Something has to think. The Arduino runs our program over and over, many thousands of times a second.',
+      deep: '<h4>What it is</h4><p>A board built around the ATmega328P microcontroller (16 MHz, 5 V logic, 32 KB program memory). It has 14 digital pins (0–13) and 6 analog inputs (A0–A5). Pins marked <code>~</code> (3, 5, 6, 9, 10, 11) can make PWM.</p><h4>Pins used in this robot</h4><ul><li><code>5</code>, <code>6</code> → L298N ENA / ENB: speed (PWM)</li><li><code>7</code>, <code>8</code>, <code>12</code>, <code>13</code> → IN1–IN4: direction</li><li><code>9</code> → HC-SR04 Trig, <code>10</code> → Echo</li><li><code>A0</code>, <code>A1</code> → left / right KY-032 OUT (read as digital inputs)</li><li><code>5V</code>, <code>GND</code> → breadboard rails (power from the L298N regulator, or USB while testing)</li><li><code>0</code>, <code>1</code> left free so USB upload and the Serial Monitor keep working</li></ul><h4>Why it cannot drive a motor directly</h4><p>A pin can safely give about 20 mA. A TT motor needs a few hundred mA, more when it starts or stalls, and creates voltage spikes. The pin would be damaged, so the Arduino only sends small signals to the L298N, which does the heavy work.</p>' },
+    { key: 'l298n', name: 'L298N motor driver', nick: 'the Motor Boss', part: 'boss', color: '#e5383b', diag: 'l298n',
+      simple: 'A strong helper. The Arduino whispers “left side forward, half speed”, and the L298N sends real battery power to the motors.',
+      why: 'The Arduino is too weak to power motors. The L298N takes battery power and switches it to the motors in the direction and speed the Arduino asks for.',
+      deep: '<h4>What it is</h4><p>A module with the L298N chip: two “H-bridges”, so it can drive two motor channels, each forward or backward. Channel A = OUT1/OUT2 (our left motors), channel B = OUT3/OUT4 (our right motors). It loses about 2 V inside itself, so with 7.4 V in, the motors get roughly 5–6 V.</p><h4>The pins</h4><ul><li><code>12V</code> (VCC/VS): motor power in. Here: battery + through the switch (7.4 V).</li><li><code>GND</code>: battery − and the shared ground for everything.</li><li><code>5V</code>: with the <code>5V-EN</code> jumper on, a small built-in regulator makes 5 V. We use it to power the Arduino and sensors.</li><li><code>IN1</code>, <code>IN2</code>: direction of channel A. <code>IN3</code>, <code>IN4</code>: direction of channel B.</li><li><code>ENA</code>, <code>ENB</code>: enable / speed. With their caps removed, the Arduino sends PWM here.</li><li><code>OUT1</code>–<code>OUT4</code>: to the motors.</li></ul><h4>How inputs change direction</h4><table><thead><tr><th>IN1</th><th>IN2</th><th>Left motors</th></tr></thead><tbody><tr><td>HIGH</td><td>LOW</td><td>forward</td></tr><tr><td>LOW</td><td>HIGH</td><td>backward</td></tr><tr><td>LOW</td><td>LOW</td><td>stop (coast)</td></tr><tr><td>HIGH</td><td>HIGH</td><td>brake</td></tr></tbody></table><p style="margin-top:8px">Speed: <code>analogWrite(5, 160)</code> turns ENA on and off very fast, about 63% of the time on, so the motors run at roughly 63% power. Our code only uses forward, backward and stop.</p>' },
+    { key: 'motor', name: 'TT gear motors (× 4) and wheels', nick: 'the Muscles', part: 'body', color: '#f4c20d', diag: 'motor',
+      simple: 'Each yellow box is a small motor with gears inside. When power flows in, the wheel turns. Flip the wires and it turns the other way.',
+      why: 'Four motors give grip and push. Both motors on one side are wired together, so each side works like a tank track.',
+      deep: '<h4>What it is</h4><p>A small DC motor (the silver can) with a plastic gearbox (the yellow part). The gears trade speed for force, so a light robot can move well. They are made for roughly 3–6 V.</p><h4>No + or −</h4><p>A simple DC motor has two tabs and no fixed polarity. Current one way spins it forward, the other way backward. That is why we call one tab “red” on every motor and fix any backwards wheel by swapping its two wires.</p><h4>Skid steering</h4><p>The robot has no steering wheel. To turn right, the left side goes forward and the right side backward (spin on the spot), or one side goes slower than the other.</p><h4>The black disc</h4><p>The slotted black disc on each inner shaft is for a speed sensor. This robot does not use one.</p>' },
+    { key: 'battery', name: '2 × 18650 Li-ion battery', nick: 'the Energy', part: 'battery', color: '#34d399', diag: 'battery',
+      simple: 'Two rechargeable cells give the robot its energy. They power the motors, and through the L298N the Arduino and sensors too.',
+      why: 'Four motors need more energy than USB or AA cells can give. Two 18650 cells in series give 7.4 V, which suits the L298N.',
+      deep: '<h4>Numbers</h4><ul><li>One cell: 3.7 V normal, 4.2 V full, about 3.0 V empty.</li><li>Two in series: 7.4 V normal, 8.4 V full.</li></ul><h4>Safety (we learned this the hard way)</h4><ul><li>Red (+) goes to the switch, then 12V. Black (−) goes to GND. Swapped wires make a short circuit: sparks and a hot battery.</li><li>Never let bare battery wires touch. Never connect the battery to the Arduino’s 5V pin.</li><li>A hot, swollen or smelly cell must not be used again.</li></ul>' },
+    { key: 'switch', name: 'On/off switch (3 legs)', nick: 'the Gate', part: 'battery', color: '#9aa3a8', diag: 'switch',
+      simple: 'It opens and closes the battery’s red wire. OFF means no power can reach the robot.',
+      why: 'You need a safe way to stop everything without pulling wires out.',
+      deep: '<h4>How a 3-leg switch works</h4><p>It is a “single pole, double throw” switch. The middle leg is the common one. In one position it joins the middle to leg 1, in the other to leg 3. We use the middle and one end leg only.</p><h4>Wiring</h4><ul><li>Battery + → middle leg</li><li>End leg → L298N 12V</li><li>Other end leg → nothing</li></ul><p>Small slide switches are rated for only a fraction of an amp; four motors can draw 1–2 A. A bigger rocker switch is safer for long runs.</p>' },
+    { key: 'hcsr04', name: 'HC-SR04 ultrasonic sensor', nick: 'the Eyes', part: 'eyes', color: '#1fc8db', diag: 'hcsr04',
+      simple: 'It shouts a sound too high for us to hear and listens for the echo. A quick echo means something is close.',
+      why: 'It tells the robot how far away the thing straight ahead is, so it can slow down and turn before hitting it.',
+      deep: '<h4>How it measures distance</h4><p>The Arduino sends a 10 µs pulse on <code>Trig</code>. The sensor sends 8 pulses of 40 kHz sound and sets <code>Echo</code> HIGH until the echo returns. The Arduino times Echo with <code>pulseIn()</code>. Sound travels about 343 m/s, and the sound goes there and back, so distance in cm ≈ time in µs ÷ 58.</p><h4>Pins</h4><ul><li><code>Vcc</code> → 5 V (red row), <code>Gnd</code> → GND (blue row)</li><li><code>Trig</code> → pin 9, <code>Echo</code> → pin 10</li></ul><h4>In our code</h4><p>It is read every 60 ms. If nothing echoes within 25 ms (about 4 m), the code treats it as “nothing seen”. Below 45 cm the robot slows, below 22 cm it stops.</p><h4>Limits</h4><p>It sees in a narrow cone straight ahead. Soft things (curtains) and walls hit at an angle can fool it. That is why we add the IR whiskers.</p>' },
+    { key: 'ky032', name: 'KY-032 IR obstacle sensors (× 2)', nick: 'the Whiskers', part: 'whiskers', color: '#9b51e0', diag: 'ky032',
+      simple: 'Each one shines invisible light forward. If the light bounces back, something is in the way, and its little light turns on.',
+      why: 'They watch the front corners that the ultrasonic sensor misses, and tell the robot which side the obstacle is on.',
+      deep: '<h4>How it works</h4><p>An infrared LED sends pulsed IR light; a receiver looks for that light coming back. When it sees enough reflection, <code>OUT</code> goes LOW (0 V). Otherwise it stays HIGH (5 V). The range screw sets how close is “close”.</p><h4>Pins</h4><ul><li><code>VCC</code> → red row, <code>GND</code> → blue row</li><li><code>OUT</code> → A0 (left) or A1 (right)</li><li><code>EN</code> on 4-pin boards: not connected, jumper cap on</li></ul><h4>In our code</h4><p>The pins use <code>INPUT_PULLUP</code>, so an unplugged sensor reads HIGH = “clear” instead of random noise. Left sees something → turn right. Right sees something → turn left.</p><h4>Limits</h4><p>Black or dark surfaces reflect little IR, and bright sunlight can confuse it.</p>' },
+    { key: 'breadboard', name: 'Half-size breadboard', nick: 'the Power Strip', part: 'bb', color: '#e9e7df', diag: 'breadboard',
+      simple: 'A board full of holes that are secretly joined in lines. We use its red line row for power and its blue line row for ground.',
+      why: 'Many parts need 5 V and GND. The breadboard shares one supply with all of them without soldering.',
+      deep: '<h4>Inside</h4><p>400 holes: 30 columns, rows a–j, and two rails along each long edge. Each column of five holes (a–e, or f–j) is joined inside. The rails run along the board’s length. The middle gap separates the two halves.</p><h4>In this robot</h4><p>Only the outer rails are used: the <b>+ row (red line)</b> carries 5 V from the L298N, and the <b>− row (blue line)</b> is the shared GND. Columns 2–5 take the power in, columns 26–29 feed the sensors.</p>' },
+    { key: 'wires', name: 'Jumper wires', nick: 'the Roads', part: null, color: '#ff8c1a',
+      simple: 'Wires with a pin or a socket on the end. They carry power and signals from one part to another.',
+      why: 'They let us build without soldering, and change things easily.',
+      deep: '<h4>Two kinds</h4><ul><li><b>Male-to-male:</b> pin on both ends. Arduino ↔ breadboard, and into screw terminals.</li><li><b>Male-to-female:</b> a socket on one end, which slides over a pin. Used for the L298N control pins and the sensors.</li></ul><h4>Colours</h4><p>The colour does not change how a wire works; it is only for us. This build keeps red = 5 V or battery +, black = GND, and one colour per signal so mistakes are easy to spot. The motors use pieces of rainbow flat cable, soldered to the tabs and screwed into the L298N.</p>' }
+  ];
+  $('dashComps').innerHTML = COMPS.map(function (c) { return '<button class="comp-chip" type="button" data-comp="' + c.key + '"><i style="background:' + c.color + '"></i>' + esc(c.name) + '</button>'; }).join('');
+  $('dashComps').addEventListener('click', function (e) { var t = e.target.closest('[data-comp]'); if (t) openComponent(t.dataset.comp); });
+  $('compList').innerHTML = COMPS.map(function (c) {
+    return '<article class="card comp" id="comp-' + c.key + '"><div class="comp-head" tabindex="0" role="button" aria-expanded="false"><div class="comp-ico"><span style="width:22px;height:22px;border-radius:6px;background:' + c.color + ';box-shadow:0 0 14px ' + c.color + '"></span></div><div><div class="eyebrow" style="margin:0">' + esc(c.nick) + '</div><h3>' + esc(c.name) + '</h3></div><span class="chev">▾</span></div>' +
+      '<div class="comp-body"><p class="simple">' + esc(c.simple) + '</p><p><b>Why are we using it?</b> ' + esc(c.why) + '</p>' + (c.diag ? '<div class="svgbox">' + DIAG[c.diag] + '</div>' : '') + '<div class="deep">' + c.deep + '</div>' +
+      (c.part ? '<div><button class="btn sm" type="button" data-show3d="' + c.part + '">Show in 3D</button></div>' : '') + '</div></article>';
+  }).join('') + '<div class="card"><h3>Not used in this robot</h3><p class="note" style="margin-top:6px">There are no LEDs, resistors or servo motors in this build (apart from what is already built into the boards). The KY-022 / 1838 IR receiver from the kit is a TV-remote receiver, so it is not used either.</p></div>';
+  $('compList').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-show3d]'); if (t) { showPartIn3D(t.dataset.show3d); return; }
+    var h = e.target.closest('.comp-head'); if (h) { var a = h.parentNode.classList.toggle('open'); h.setAttribute('aria-expanded', a); }
+  });
+  $('compList').addEventListener('keydown', function (e) { var h = e.target.closest('.comp-head'); if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); h.click(); } });
+  function openComponent(key) { show('components'); var el = $('comp-' + key); if (!el) return; el.classList.add('open'); setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); }
+
+  // ------------------------------------------------------------------ learn electronics
+  var PWM_SVG = '<svg viewBox="0 0 640 200"><rect width="640" height="200" fill="#070d19"/><g font-family="JetBrains Mono" font-size="12" fill="#cfe2ff"><text x="20" y="50">25%</text><text x="20" y="110">63%</text><text x="20" y="170">100%</text></g>' +
+    [[50, 0.25], [110, 0.63], [170, 1]].map(function (r) { var y = r[0], d = '', x = 80; for (var i = 0; i < 6; i++) { var on = 90 * r[1]; d += 'M' + x + ' ' + y + 'V' + (y - 25) + 'H' + (x + on) + (r[1] < 1 ? 'V' + y + 'H' + (x + 90) : ''); x += 90; } return '<path d="' + d + '" fill="none" stroke="#38d7f5" stroke-width="2.5"/>'; }).join('') + '<text x="80" y="195" fill="#8b9cb8" font-family="IBM Plex Sans" font-size="12">Same 5 V pulses, different “on” time. Longer on-time = faster motors. analogWrite(pin, 0…255).</text></svg>';
+  var LESSONS = [
+    ['voltage', 'Voltage, current and power', 'Voltage is the “push” (volts, V). Current is how much electricity flows (amps, A). A motor needs both: enough push, and enough flow.', '<p>Our battery gives 7.4 V of push. The Arduino and sensors run on 5 V. The motors draw hundreds of milliamps each, which is why they get their own driver.</p>'],
+    ['gnd', 'GND and common ground', 'GND is the “zero” that every voltage is measured from. All parts must share the same GND.', '<p>When the Arduino sets a pin HIGH, it means “5 V above <i>my</i> GND”. The L298N can only understand that if it shares the same GND. That is why battery −, L298N GND, Arduino GND and every sensor GND all meet on the blue row.</p>'],
+    ['series', 'Cells in series', 'Two cells end-to-end add their voltages: 3.7 V + 3.7 V = 7.4 V.', '<p>The current stays the same as one cell; only the push doubles. The L298N needs a few volts more than the motors use, because about 2 V is lost inside it.</p>'],
+    ['digital', 'Digital HIGH and LOW', 'A digital pin is either HIGH (5 V, “on”) or LOW (0 V, “off”). That is enough to say “forward” or “backward”.', '<p><code>digitalWrite(7, HIGH)</code> sets pin 7 to 5 V. <code>digitalRead(A0)</code> checks if the left whisker’s OUT is HIGH or LOW. Analog pins A0–A5 can also be used as digital pins, as we do.</p>'],
+    ['pwm', 'PWM: speed control', 'PWM switches a pin on and off very fast. The longer it stays on, the more power the motor gets.', PWM_SVG],
+    ['hbridge', 'The H-bridge', 'Four electronic switches around a motor. Closing two diagonal ones sends current one way; the other two send it the other way.', DIAG.l298n],
+    ['pullup', 'Pull-up inputs', 'An input pin that is connected to nothing reads random noise. A pull-up gently holds it HIGH until something pulls it LOW.', '<p>Our code uses <code>pinMode(IR_LEFT, INPUT_PULLUP)</code>. The KY-032 pulls OUT LOW when it sees something. If a sensor is unplugged, the pull-up keeps the pin HIGH, which the code treats as “clear”.</p>'],
+    ['ultra', 'Echoes: measuring distance with sound', 'Time how long an echo takes. Twice as far = twice as long.', DIAG.hcsr04],
+    ['short', 'Short circuits and polarity', 'A short circuit is a path with almost nothing in it, from + straight to −. Huge current flows and things get hot.', '<p>When the battery wires were swapped at the L298N, current flowed backwards through it, almost like a short: sparks and a hot battery. Always: red → switch → 12V, black → GND, and check twice before inserting cells.</p>'],
+    ['skid', 'Skid steering', 'No steering wheel: the robot turns by running its left and right sides at different speeds or directions.', '<p>Left forward + right backward = spin right on the spot. That is exactly what <code>drive(TURN_SPEED, -TURN_SPEED)</code> does in the code.</p>']
+  ];
+  $('learnNav').innerHTML = LESSONS.map(function (l) { return '<button class="btn sm" type="button" data-lesson="' + l[0] + '">' + esc(l[1]) + '</button>'; }).join('');
+  $('learnList').innerHTML = LESSONS.map(function (l) { return '<article class="card" id="lesson-' + l[0] + '" style="scroll-margin-top:20px"><h3>' + esc(l[1]) + '</h3><p class="simple" style="margin:10px 0">' + esc(l[2]) + '</p><div class="deep' + (l[3].indexOf('<svg') === 0 ? ' svgbox' : '') + '">' + l[3] + '</div></article>'; }).join('');
+  $('learnNav').addEventListener('click', function (e) { var t = e.target.closest('[data-lesson]'); if (t) $('lesson-' + t.dataset.lesson).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+
+  // ------------------------------------------------------------------ code
+  var SRC = ''; try { SRC = JSON.parse($('srcCode').textContent); } catch (e) { SRC = '// code could not be loaded'; }
+  var CODE_SECTIONS = [
+    ['// ====', '// ---------------- PINS', 'What the robot does', 'The comment block at the top is a note for humans. The Arduino ignores everything after <code>//</code>. The plan: wait 3 s, drive forward, slow down when something is near, stop when it is close, and drive on when the way is clear. It never reverses or turns.', null],
+    ['// ---------------- PINS', '// ---------------- SETTINGS', 'Pins: which wire goes where', 'Each line gives a pin number a name, so the code says <code>LEFT_IN1</code> instead of <code>7</code>. These must match your wiring exactly.', 'boss'],
+    ['// ---------------- SETTINGS', 'int  distanceCm', 'Settings you can tune', 'Speeds (0–255) and distances (cm). Raise <code>STOP_CM</code> if it stops too late. <code>LEFT_REVERSED = true</code> came from the wheels-in-the-air test: the left motors are wired the other way round, so the code flips them instead of rewiring. <code>IR_SAMPLES_NEEDED</code> sets how sure the IR filter must be.', null],
+    ['int  distanceCm', 'void setup()', 'The robot’s memory', 'Variables remember the last distance, the last 16 checks of each IR whisker, how many close pings came in a row, and whether the robot is driving, stopped or paused.', 'brain'],
+    ['void setup()', 'void loop()', 'setup(): runs once at power-on', 'Sets the motor pins as outputs and stops the motors, prepares the HC-SR04 pins, turns on the pull-ups for the whiskers, starts the Serial Monitor at 9600 baud, then waits 3 seconds so you can put the robot down.', 'brain'],
+    ['void loop()', '// Both sides forward', 'loop(): the driving brain', 'Runs forever, thousands of times a second. Read the sensors, check for S or G over USB, then decide: two close pings in a row (under 22 cm) or a whisker that sees something means <b>stop</b>. Clear for 0.3 s means <b>drive</b>: slowly under 45 cm, normal speed otherwise.', 'whiskers'],
+    ['// Both sides forward', 'void setSide', 'drive(): both sides at once', 'One speed for both sides, from 0 (stop) to 255 (full). The robot only drives forward, so there is no negative speed.', 'boss'],
+    ['void setSide', 'void readSensors()', 'setSide(): talking to the L298N', 'Forward: IN1 HIGH and IN2 LOW (swapped when that side is wired reversed). Stop: both LOW. Then <code>analogWrite(en, speed)</code> sets the PWM speed on ENA or ENB.', 'boss'],
+    ['void readSensors()', 'byte countBits', 'readSensors(): eyes and whiskers', 'Whiskers: every 10 ms the code checks A0 and A1 (LOW = obstacle) and keeps the last 16 results. It only believes an obstacle when at least 14 of 16 agree, which ignores a flickering sensor. Eyes: every 60 ms, a 10 µs pulse on Trig, then <code>pulseIn</code> times the Echo. Time ÷ 58 = distance in cm.', 'eyes'],
+    ['byte countBits', 'void printStatus()', 'countBits(): how many checks saw something', 'Counts the 1s among the last 16 IR checks. This is the small helper behind the flicker filter.', null],
+    ['void printStatus()', null, 'printStatus(): what you see in the Serial Monitor', 'Twice a second it prints the distance, both whiskers (X = sees something) and what the robot is doing, e.g. <code>dist 34 cm | IR L:- R:- | DRIVING</code>.', 'brain']
+  ];
+  function cut(a, b) { var i = SRC.indexOf(a); if (i < 0) return ''; var j = b ? SRC.indexOf(b, i + a.length) : SRC.length; if (j < 0) j = SRC.length; return SRC.slice(i, j).replace(/\n\/\/ =+\s*$/, '').replace(/\n\/\/\s{2}[A-Z ]+\n?\s*$/, '').replace(/\n\/\/ =+\s*$/, '').trimEnd(); }
+  function hl(code) {
+    return esc(code).replace(/(\/\/[^\n]*)|(&quot;[^\n]*?&quot;|"[^"\n]*")|\b(const|byte|int|bool|unsigned|long|float|void|if|else|switch|case|break|return|enum|while|true|false|char)\b|\b(\d+(?:\.\d+)?)\b/g, function (m, c, s, k, n) { return c ? '<span class="tok-c">' + c + '</span>' : s ? '<span class="tok-s">' + s + '</span>' : k ? '<span class="tok-k">' + k + '</span>' : '<span class="tok-n">' + n + '</span>'; });
+  }
+  $('codeList').innerHTML = CODE_SECTIONS.map(function (c, i) {
+    var code = cut(c[0], c[1]); if (!code) return '';
+    return '<div class="codeblock"><pre>' + hl(code) + '</pre><div class="explain"><div class="eyebrow" style="margin:0">Part ' + (i + 1) + '</div><h3>' + esc(c[2]) + '</h3><p>' + c[3] + '</p>' + (c[4] ? '<div><button class="btn sm" type="button" data-show3d="' + c[4] + '">Controls this part · show in 3D</button></div>' : '') + '</div></div>';
+  }).join('');
+  $('codeList').addEventListener('click', function (e) { var t = e.target.closest('[data-show3d]'); if (t) showPartIn3D(t.dataset.show3d); });
+  function copyText(btn, text, done) { function sel() { btn.textContent = 'Select and copy manually'; } try { navigator.clipboard.writeText(text).then(function () { var o = btn.textContent; btn.textContent = done; setTimeout(function () { btn.textContent = o; }, 1600); }, sel); } catch (e) { sel(); } }
+  $('copyCode').addEventListener('click', function () { copyText(this, SRC, 'Copied'); });
+
+  // ------------------------------------------------------------------ quick revision
+  var QA = [
+    ['What is an Arduino?', 'A small programmable board with a microcontroller (here the ATmega328P on the Arduino Uno). It reads inputs like sensors and controls outputs like the motor driver, following the program we upload.'],
+    ['What is the L298N?', 'A dual H-bridge motor driver module. It takes signals from the Arduino and switches battery power to two motor channels, controlling each one’s direction (IN pins) and speed (EN pins with PWM).'],
+    ['Why do we need a motor driver?', 'Because the motors need much more current than an Arduino pin can give, and they need to run in both directions. The driver does the heavy switching; the Arduino only sends small signals.'],
+    ['Why can’t the Arduino drive the motors directly?', 'A pin can safely supply about 20 mA. A TT motor needs hundreds of mA (more when starting), and motors produce voltage spikes. Connecting one directly could damage the Arduino.'],
+    ['What do IN1 and IN2 do?', 'They set the direction of channel A (our left motors). IN1 HIGH + IN2 LOW = forward, IN1 LOW + IN2 HIGH = backward, both LOW = stop.'],
+    ['What do ENA and ENB do?', 'They enable each channel and set its speed. We removed their jumper caps so the Arduino can send PWM to them on pins 5 and 6.'],
+    ['What is PWM?', 'Pulse-width modulation: switching a pin on and off very fast. The fraction of time it is on (the duty cycle) sets the average power. analogWrite(pin, 0–255) sets it.'],
+    ['What is GND?', 'Ground: the 0 V reference that all voltages are measured from. Every part must share it, so a HIGH from the Arduino means the same thing to the L298N and the sensors.'],
+    ['How does the ultrasonic sensor work?', 'A 10 µs pulse on Trig makes it send 40 kHz sound. Echo stays HIGH until the echo returns. The Arduino measures that time with pulseIn(); distance in cm ≈ time in µs ÷ 58.'],
+    ['How does the KY-032 detect obstacles?', 'It sends infrared light and looks for its reflection. When enough light comes back, its OUT pin goes LOW. A screw adjusts the range.'],
+    ['Why use both ultrasonic and IR sensors?', 'The ultrasonic sensor measures distance straight ahead but has a narrow view and can miss angled or soft surfaces. The IR sensors cover the front corners and tell which side the obstacle is on.'],
+    ['How would the robot turn?', 'This program only drives forward, but the chassis steers by skid steering: the left and right motors run at different speeds or directions. Left forward and right backward would spin it to the right.'],
+    ['Why are both left motors wired to the same outputs?', 'So each side moves as one unit. The L298N has two channels, one per side, and two motors in parallel share each channel.'],
+    ['What voltage does the battery give?', 'Two 18650 cells in series: about 7.4 V normally, 8.4 V when full.'],
+    ['Where does the Arduino get its power on the robot?', 'From the L298N’s built-in 5 V regulator (5V-EN jumper on), through the breadboard’s + row to the Arduino 5V pin. While testing it can also be powered by USB.'],
+    ['What does INPUT_PULLUP do?', 'It turns on a resistor inside the Arduino that holds the pin HIGH when nothing pulls it LOW. Our whiskers pull it LOW when they see something; unplugged, the pin stays HIGH (“clear”).'],
+    ['What happens if the battery wires are swapped?', 'Current flows backwards through the L298N, almost like a short circuit: sparks and a hot battery, and the module can be damaged. Red must go via the switch to 12V and black to GND.'],
+    ['What does the robot do when it sees an obstacle?', 'Below 45 cm it slows down. Below 22 cm, or when a whisker sees something, it stops and waits. When the way has been clear for 0.3 s it drives forward again. It never reverses.'],
+    ['Why does the code filter the IR sensors?', 'An IR module can flicker between “obstacle” and “clear” by itself. The code checks it every 10 ms and only believes an obstacle when 14 of the last 16 checks agree, so flicker is ignored but a real obstacle still stops the robot.'],
+    ['Why do the motors have no + or −?', 'They are simple DC motors: current in one direction spins them forward, the other way backward. That is why a wheel that spins the wrong way is fixed by swapping its two wires.']
+  ];
+  $('qaList').innerHTML = QA.map(function (q, i) { return '<div class="qa" id="qa' + i + '"><button type="button" aria-expanded="false"><span class="q-ico">Q' + (i + 1) + '</span>' + esc(q[0]) + '</button><div class="a">' + esc(q[1]) + '</div></div>'; }).join('');
+  $('qaList').addEventListener('click', function (e) { var b = e.target.closest('.qa button'); if (b) { var o = b.parentNode.classList.toggle('open'); b.setAttribute('aria-expanded', o); } });
+  $('openAll').addEventListener('click', function () { document.querySelectorAll('.qa').forEach(function (q) { q.classList.add('open'); }); });
+  $('closeAll').addEventListener('click', function () { document.querySelectorAll('.qa').forEach(function (q) { q.classList.remove('open'); }); });
+
+  // ------------------------------------------------------------------ start
+  updateMini();
+  var h = (location.hash || '').replace('#', '');
+  show(VIEWS.indexOf(h) >= 0 ? h : 'dashboard');
+  window.__app = { show: show, openStep: openStep, engine: function () { return engine; }, state: function () { return state; } };
+})();
+</script>
