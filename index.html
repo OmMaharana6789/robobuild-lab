@@ -517,7 +517,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
         <div>
           <div class="vid-player" id="vidPlayer"><video id="vidEl" controls playsinline preload="metadata" poster="poster.jpg" src="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4"></video></div>
           <div class="vid-now"><span class="chip cy" id="vidNow">Chapter 1 · The empty chassis</span><span class="grow"></span><button class="btn sm" type="button" id="vidTo3d">Build this part in 3D →</button><a class="btn sm ghost" id="vidDl" href="https://github.com/OmMaharana6789/robobuild-lab/releases/download/video-v1/robot_assembly.mp4" download>Download (≈205 MB)</a></div>
-          <p class="note" style="margin-top:10px">No sound: it is made for your own voice-over. If it does not start, use Download.</p>
+          <p class="note" style="margin-top:10px" id="vidNote">No sound: it is made for your own voice-over. If it does not start, use Download.</p>
         </div>
         <div class="card" style="padding:12px"><h3 style="margin:2px 4px 10px">Chapters</h3><div class="chapters" id="vidChapters"></div></div>
       </div>
@@ -693,6 +693,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
     var c = e.target.closest('[data-chap]'); if (c) seekChapter(+c.dataset.chap);
   });
   $('vidChapters').addEventListener('keydown', function (e) { var c = e.target.closest('[data-chap]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seekChapter(+c.dataset.chap); } });
+  $('vidEl').addEventListener('error', function () { $('vidNote').innerHTML = 'This copy of the guide can’t load the video. Watch it on the public site: <a href="https://ommaharana6789.github.io/robobuild-lab/#video" target="_blank" rel="noopener">ommaharana6789.github.io/robobuild-lab</a>'; });
   $('vidEl').addEventListener('timeupdate', function () { markChapter(chapterAt(this.currentTime)); });
   $('vidTo3d').addEventListener('click', function () { openStep(CHAPTERS[Math.max(0, curChap)][3]); });
   function vidFormat(k) {
