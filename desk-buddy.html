@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060a13">
+<meta name="description" content="Turn an M5Stack Dial into a Desk Buddy: animated eyes, Pomodoro timer, Bluetooth volume knob, robot remote, games and NFC magic cards. Step by step in 3D.">
+<title>Desk Buddy · RoboBuild Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Shared look: copied from index.html (4WD robot tutorial) so both projects match. */
+/* Layout: engineering-dashboard shell. Fixed left rail of sections, one view at a time on the right.
+   The 3D builder view fills the viewport and becomes true fullscreen with overlay controls. */
+:root {
+  --bg: #060a13; --bg2: #0a1120; --panel: #0d1628; --panel2: #111d34; --line: #1b2a45; --line2: #24385c;
+  --ink: #e3ecf8; --muted: #8b9cb8; --dim: #5d6e8a;
+  --cyan: #38d7f5; --cyan-soft: rgba(56, 215, 245, .14); --blue: #3b82f6; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --radius: 12px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .5; z-index: 0;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(56,215,245,.10), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(59,130,246,.08), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%231b2a45' stroke-width='1'%3E%3Cpath d='M0 40h40l20 20h40M100 60v40l20 20h40M20 160v-40l20-20h20M120 0v20l-20 20'/%3E%3C/g%3E%3Cg fill='%23243a5f'%3E%3Ccircle cx='100' cy='60' r='2.5'/%3E%3Ccircle cx='60' cy='100' r='2.5'/%3E%3Ccircle cx='100' cy='40' r='2'/%3E%3C/g%3E%3C/svg%3E"); }
+a { color: var(--cyan); }
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 600; letter-spacing: .01em; margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(1.7rem, 3vw, 2.3rem); }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.12rem; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: .9em; }
+.grown code, .card code, td code { color: var(--cyan); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ---------- shell ---------- */
+.app { position: relative; z-index: 1; display: grid; grid-template-columns: 236px 1fr; min-height: 100%; }
+.app.collapsed { grid-template-columns: 68px 1fr; }
+.side { position: sticky; top: 0; height: 100vh; background: linear-gradient(180deg, #0a1222, #070c17); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 14px 10px; gap: 6px; overflow-y: auto; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 14px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.brand-logo { width: 34px; height: 34px; flex: none; border-radius: 9px; background: radial-gradient(circle at 30% 30%, #1c4b6b, #0b1830); border: 1px solid #2b5c80; display: grid; place-items: center; box-shadow: 0 0 18px rgba(56,215,245,.25) inset; }
+.brand b { font-family: var(--display); font-size: 1.08rem; letter-spacing: .04em; display: block; }
+.brand small { color: var(--muted); font-size: .74rem; font-family: var(--mono); }
+.nav { display: grid; gap: 2px; }
+.nav button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; text-align: left; font-weight: 500; transition: background .15s, color .15s; }
+.nav button svg { width: 19px; height: 19px; flex: none; }
+.nav button:hover { background: var(--panel); color: var(--ink); }
+.nav button.on { background: var(--cyan-soft); color: var(--ink); box-shadow: inset 2px 0 0 var(--cyan); }
+.nav .sec { font: 600 .68rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 12px 10px 4px; }
+.side-foot { margin-top: auto; display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mini-prog { padding: 8px 10px; border-radius: 9px; background: var(--panel); font-size: .8rem; color: var(--muted); }
+.mini-prog .bar { height: 5px; border-radius: 9px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.mini-prog .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); width: 0; transition: width .4s; }
+.collapse-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 7px; cursor: pointer; color: var(--muted); }
+.app.collapsed .brand b, .app.collapsed .brand small, .app.collapsed .nav button span, .app.collapsed .nav .sec, .app.collapsed .mini-prog { display: none; }
+.app.collapsed .nav button { justify-content: center; }
+.main { min-width: 0; }
+.topbar { display: none; }
+.view { display: none; padding-inline: 28px; padding-block: 26px 60px; max-width: 1240px; animation: viewIn .28s ease both; }
+.view.on { display: block; }
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.view-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.eyebrow { font: 600 .72rem var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); margin-bottom: 6px; }
+.lede { color: var(--muted); max-width: 70ch; margin-top: 6px; }
+
+/* ---------- building blocks ---------- */
+.card { background: linear-gradient(180deg, var(--panel), #0b1424); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.card.glow { border-color: #23506c; box-shadow: 0 0 0 1px rgba(56,215,245,.08), 0 10px 30px -18px rgba(56,215,245,.45); }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line2); background: var(--panel2); color: var(--ink); border-radius: 9px; padding: 9px 15px; cursor: pointer; font-weight: 600; transition: border-color .15s, background .15s, transform .1s; }
+.btn:hover { border-color: var(--cyan); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: linear-gradient(180deg, #19b6d9, #1288b8); border-color: transparent; color: #021018; box-shadow: 0 6px 22px -10px rgba(56,215,245,.8); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 6px 11px; font-size: .86rem; }
+.btn[disabled] { opacity: .4; cursor: default; }
+.btn svg { width: 16px; height: 16px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 .74rem var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line2); color: var(--muted); background: rgba(13,22,40,.7); }
+.chip.ok { color: var(--ok); border-color: rgba(52,211,153,.35); }
+.chip.cy { color: var(--cyan); border-color: rgba(56,215,245,.35); }
+.chip.warn { color: var(--warn); border-color: rgba(251,191,36,.35); }
+.swatch { width: .8em; height: .8em; border-radius: 3px; display: inline-block; border: 1px solid rgba(255,255,255,.25); vertical-align: -.05em; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 .7rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); background: #0b1324; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: rgba(56,215,245,.03); }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: .88rem; }
+.warnbox { border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.07); color: #fde68a; border-radius: 10px; padding: 10px 14px; }
+.badbox { border: 1px solid rgba(248,113,113,.4); background: rgba(248,113,113,.08); color: #fecaca; border-radius: 10px; padding: 10px 14px; }
+[data-tip] { position: relative; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; background: #02060d; border: 1px solid var(--line2); color: var(--ink); font: 500 .76rem var(--body); padding: 5px 9px; border-radius: 7px; z-index: 50; pointer-events: none; }
+[data-tip-down]:hover::after { bottom: auto; top: calc(100% + 8px); }
+
+/* ---------- dashboard ---------- */
+.hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+.hero-main { position: relative; overflow: hidden; padding: 26px; }
+.hero-main::after { content: ""; position: absolute; right: -40px; top: -40px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(56,215,245,.18), transparent 65%); pointer-events: none; }
+.hero-main h1 { max-width: 18ch; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.ring { width: 128px; height: 128px; flex: none; }
+.prog-card { display: flex; gap: 18px; align-items: center; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.kpi { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #0a1222; }
+.kpi b { display: block; font: 600 1.3rem var(--display); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: .76rem; color: var(--muted); }
+.phase-row { display: grid; grid-template-columns: 150px 1fr 54px; align-items: center; gap: 12px; padding: 7px 0; font-size: .9rem; }
+.phase-row .bar { height: 7px; border-radius: 9px; background: var(--line); overflow: hidden; }
+.phase-row .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+.phase-row .n { text-align: right; font-family: var(--mono); color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.module { cursor: pointer; transition: border-color .15s, transform .15s; display: grid; gap: 8px; }
+.module:hover { border-color: #2a6f8f; transform: translateY(-2px); }
+.module .ico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--cyan-soft); color: var(--cyan); }
+.module .ico svg { width: 20px; height: 20px; }
+.comp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.comp-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 11px; border-radius: 9px; border: 1px solid var(--line); background: #0a1222; cursor: pointer; font-size: .86rem; }
+.comp-chip:hover { border-color: var(--cyan); }
+.comp-chip i { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ---------- 3D builder ---------- */
+#view-build { max-width: none; padding: 0; }
+.stage { position: relative; height: 100vh; min-height: 560px; background: radial-gradient(ellipse at 50% 30%, #0f1c33 0%, #060a13 70%); overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.stage.fs { position: fixed; inset: 0; z-index: 100; height: 100%; min-height: 0; }
+.stage:fullscreen { min-height: 0; }
+.overlay { position: absolute; pointer-events: none; }
+.overlay > * { pointer-events: auto; }
+.tools { top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 320px); }
+.tool { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line2); background: rgba(10,17,32,.86); backdrop-filter: blur(6px); cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--ink); }
+.tool:hover { border-color: var(--cyan); }
+.tool svg { width: 16px; height: 16px; }
+.tool.on { background: rgba(56,215,245,.18); border-color: var(--cyan); color: #bff4ff; }
+.status { top: 14px; right: 14px; display: grid; gap: 6px; justify-items: end; }
+.stat { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 9px; border: 1px solid var(--line2); background: rgba(10,17,32,.86); backdrop-filter: blur(6px); font: 600 .8rem var(--mono); }
+.stat .led { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.stat.shift { border-color: var(--warn); color: var(--warn); box-shadow: 0 0 0 3px rgba(251,191,36,.12); }
+.stat.shift .led { background: var(--warn); box-shadow: 0 0 10px var(--warn); animation: blink .8s infinite; }
+@keyframes blink { 50% { opacity: .3; } }
+.kbd { font: 600 .72rem var(--mono); border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; color: var(--muted); }
+.stepcard { left: 14px; bottom: 14px; width: min(520px, calc(100% - 28px)); background: rgba(8,14,27,.92); backdrop-filter: blur(8px); border: 1px solid #23506c; border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; box-shadow: 0 20px 50px -20px #000; transition: opacity .25s; }
+.stepcard .collapsible { display: grid; gap: 10px; }
+.stepcard.min .collapsible { display: none; }
+.stepcard.gone { display: none; }
+.stepcard .top .right { display: flex; align-items: center; gap: 8px; }
+.icobtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line2); background: transparent; color: var(--muted); cursor: pointer; font: 700 1rem/1 var(--mono); }
+.icobtn:hover { color: var(--ink); border-color: var(--cyan); }
+.restore { left: 14px; bottom: 14px; display: none; }
+.restore.on { display: block; }
+.restore button { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #23506c; background: rgba(8,14,27,.9); backdrop-filter: blur(6px); color: var(--ink); cursor: pointer; font-size: .82rem; font-weight: 600; box-shadow: 0 10px 30px -12px #000; }
+.restore button:hover { border-color: var(--cyan); }
+.restore .n { font-family: var(--mono); color: var(--cyan); }
+.stepcard .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.stepcard .phase { font: 600 .7rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); }
+.stepcard h2 { font-size: 1.35rem; }
+.stepcard .kid { font-size: 1.08rem; font-weight: 500; }
+.donow { border: 1px solid rgba(56,215,245,.45); background: linear-gradient(90deg, rgba(56,215,245,.12), rgba(56,215,245,.03)); border-radius: 10px; padding: 10px 12px; display: grid; gap: 3px; animation: donowIn .5s ease both; }
+.donow b { font: 600 .7rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); }
+.donow span { font-size: 1.04rem; font-weight: 600; }
+@keyframes donowIn { 0% { box-shadow: 0 0 0 0 rgba(56,215,245,.6); } 100% { box-shadow: 0 0 0 10px rgba(56,215,245,0); } }
+.wirechips { display: flex; flex-wrap: wrap; gap: 8px; }
+.wirechip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 5px; border-radius: 999px; background: #0d1830; border: 1px solid var(--line2); font-weight: 600; font-size: .86rem; }
+.wirechip i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); }
+details.grown { border-top: 1px solid var(--line); padding-top: 8px; font-size: .88rem; color: var(--muted); }
+details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; font-size: .85rem; }
+.stepnav { display: flex; gap: 8px; align-items: center; }
+.stepnav .grow { flex: 1; }
+.stepdots { right: 14px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 300px; justify-content: flex-end; }
+.stepdots i { width: 9px; height: 9px; border-radius: 3px; background: #1b2a45; cursor: pointer; transition: transform .1s; }
+.stepdots i:hover { transform: scale(1.4); }
+.stepdots i.done { background: #1f8f73; }
+.stepdots i.now { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.loading3d { inset: 0; display: grid; place-items: center; color: var(--muted); font-family: var(--mono); }
+.spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--line2); border-top-color: var(--cyan); animation: spin 1s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.flash { inset: 0; background: radial-gradient(circle, rgba(56,215,245,.10), transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none !important; }
+.flash.on { opacity: 1; transition: none; }
+
+/* ---------- build overview ---------- */
+.phase-block { margin-bottom: 18px; }
+.phase-block h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.steplist { display: grid; gap: 6px; }
+.stepitem { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #0a1222; cursor: pointer; transition: border-color .15s; }
+.stepitem:hover { border-color: var(--cyan); }
+.stepitem .num { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font: 600 .82rem var(--mono); background: var(--panel2); color: var(--muted); }
+.stepitem.done .num { background: rgba(52,211,153,.15); color: var(--ok); }
+.stepitem.now { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(56,215,245,.25); }
+.stepitem .t { font-weight: 600; }
+.stepitem .s { font-size: .84rem; color: var(--muted); }
+
+/* ---------- wiring ---------- */
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 900px; width: 100%; height: auto; }
+.conn { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.conn:last-child { border-bottom: 0; }
+.conn svg { width: 100%; height: auto; max-width: 300px; }
+.conn .why { font-size: .9rem; color: var(--muted); }
+.conn .why b { color: var(--ink); }
+.flowline { stroke-dasharray: 6 6; animation: flow 1.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -24; } }
+.checkrow { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.checkrow input { margin-top: 4px; accent-color: var(--cyan); width: 16px; height: 16px; }
+
+/* ---------- components / learn ---------- */
+.comp { scroll-margin-top: 20px; }
+.comp-head { display: flex; gap: 14px; align-items: center; cursor: pointer; }
+.comp-ico { width: 54px; height: 54px; border-radius: 12px; flex: none; background: #0a1222; border: 1px solid var(--line2); display: grid; place-items: center; }
+.comp-body { display: none; margin-top: 14px; gap: 14px; }
+.comp.open .comp-body { display: grid; }
+.comp .chev { margin-left: auto; transition: transform .2s; color: var(--muted); }
+.comp.open .chev { transform: rotate(180deg); }
+.simple { border-left: 3px solid var(--cyan); padding: 8px 12px; background: var(--cyan-soft); border-radius: 0 8px 8px 0; font-size: 1.02rem; }
+.deep h4 { font-size: .95rem; margin: 6px 0 4px; color: var(--cyan); }
+.deep p, .deep li { color: #c9d6ea; font-size: .92rem; }
+.deep ul { margin: 4px 0; padding-left: 1.2em; }
+.svgbox { background: #070d19; border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; }
+.svgbox svg { display: block; width: 100%; height: auto; min-width: 420px; }
+.learn-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+
+/* ---------- code ---------- */
+.codeblock { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; background: #070d19; }
+.codeblock pre { margin: 0; padding: 14px; overflow-x: auto; font: .8rem/1.55 var(--mono); color: #cfe2ff; border-right: 1px solid var(--line); max-height: 460px; }
+.codeblock .explain { padding: 16px; display: grid; gap: 10px; align-content: start; background: var(--panel); }
+.codeblock .explain h3 { color: var(--ink); }
+.tok-c { color: #6b819f; } .tok-k { color: #7cc7ff; } .tok-n { color: #ffb86b; } .tok-s { color: #a5e8a0; }
+
+/* ---------- exam ---------- */
+.qa { border: 1px solid var(--line); border-radius: 10px; background: #0a1222; }
+.qa button { width: 100%; text-align: left; padding: 13px 14px; border: 0; background: none; cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600; }
+.qa .a { display: none; padding: 0 14px 14px 40px; color: #c9d6ea; }
+.qa.open .a { display: block; animation: viewIn .2s ease; }
+.qa .q-ico { color: var(--cyan); font-family: var(--mono); }
+.badge-ach { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: #0a1222; opacity: .45; }
+.badge-ach.got { opacity: 1; border-color: rgba(52,211,153,.4); }
+.badge-ach .medal { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--panel2); font-family: var(--display); font-weight: 700; color: var(--muted); }
+.badge-ach.got .medal { background: radial-gradient(circle at 30% 30%, #4ee6c2, #12806a); color: #02150f; box-shadow: 0 0 16px rgba(52,211,153,.4); }
+.btn.quiet-danger { background: transparent; color: var(--muted); border-color: var(--line2); }
+.btn.quiet-danger:hover { color: var(--bad); border-color: rgba(248,113,113,.5); }
+.btn.danger { background: #b91c1c; border-color: #dc2626; color: #fff; }
+.btn.danger:hover { background: #dc2626; }
+.modal-back { position: fixed; inset: 0; z-index: 300; display: none; place-items: center; padding: 16px; background: rgba(2,6,14,.62); backdrop-filter: blur(3px); }
+.modal-back.on { display: grid; animation: viewIn .18s ease; }
+.modal { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--line2); border-radius: 14px; padding: 20px; display: grid; gap: 12px; box-shadow: 0 30px 70px -20px #000; }
+.modal h3 { font-size: 1.15rem; }
+.modal ul { margin: 0 0 0 18px; color: var(--muted); display: grid; gap: 3px; }
+.modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+/* ---------- video tutorial ---------- */
+.vid-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
+.vid-tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line2); border-radius: 12px; background: var(--panel); }
+.vid-tabs button { border: 0; background: none; color: var(--muted); font: 600 .86rem var(--body); padding: 8px 13px; border-radius: 9px; cursor: pointer; min-height: 38px; }
+.vid-tabs button[aria-selected="true"] { background: var(--cyan-soft); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(56,215,245,.45); }
+.vid-player { background: #000; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; place-items: center; }
+.vid-player video { display: block; width: 100%; height: auto; max-height: 76vh; background: #000; }
+.vid-player.tall video { width: auto; max-width: 100%; }
+.vid-now { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.vid-now .grow { flex: 1; }
+.chapters { display: grid; gap: 6px; max-height: 76vh; overflow-y: auto; padding-right: 4px; }
+.chap { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: #0a1222; cursor: pointer; transition: border-color .15s; }
+.chap:hover { border-color: #2a6f8f; }
+.chap.now { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(56,215,245,.25); background: rgba(56,215,245,.06); }
+.chap .tm { font: 600 .8rem var(--mono); color: var(--cyan); font-variant-numeric: tabular-nums; }
+.chap .t { font-weight: 600; line-height: 1.25; }
+.chap .s { font-size: .82rem; color: var(--muted); line-height: 1.35; }
+.chap .go3d { white-space: nowrap; }
+@media (max-width: 1000px) { .vid-layout { grid-template-columns: 1fr; } .chapters { max-height: none; } }
+
+/* ---------- phone UI (built separately: tab bar, sheets, full-height 3D) ---------- */
+.tabbar, .sheet-back, .sheet-handle, .phone-only { display: none; }
+@media (hover: none) { [data-tip]:hover::after, [data-tip]:focus-visible::after { display: none; } }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) { .hero { grid-template-columns: 1fr; } .codeblock { grid-template-columns: 1fr; } .codeblock pre { border-right: 0; border-bottom: 1px solid var(--line); } }
+@media (max-width: 760px) {
+  .app, .app.collapsed { grid-template-columns: 1fr; }
+  .side { position: fixed; left: 0; top: 0; z-index: 60; width: 250px; transform: translateX(-100%); transition: transform .25s; }
+  .app.drawer .side { transform: none; box-shadow: 20px 0 60px #000; }
+  .app.collapsed .brand b, .app.collapsed .brand small, .app.collapsed .nav button span, .app.collapsed .nav .sec, .app.collapsed .mini-prog { display: revert; }
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #070c17; position: sticky; top: 0; z-index: 40; }
+  .view { padding-inline: 16px; }
+  .conn { grid-template-columns: 1fr; }
+  .phase-row { grid-template-columns: 110px 1fr 44px; }
+  .tools { max-width: calc(100% - 28px); }
+  .status { top: auto; bottom: auto; right: 14px; top: 58px; }
+  .stepdots { display: none; }
+  .collapse-btn { display: none; }
+}
+@media (max-width: 760px), (max-height: 520px) and (pointer: coarse) {
+  :root { --tabh: calc(58px + env(safe-area-inset-bottom)); }
+  body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+  .app, .app.collapsed { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .main { padding-bottom: var(--tabh); }
+  .topbar { display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 40; padding: calc(9px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 9px max(16px, env(safe-area-inset-left)); background: rgba(7,12,23,.97); border-bottom: 1px solid var(--line); }
+  .topbar .brand-logo { width: 30px; height: 30px; border-radius: 8px; }
+  .topbar .t { flex: 1; min-width: 0; font-family: var(--display); font-size: 1.06rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .view { padding-inline: max(16px, env(safe-area-inset-left)); padding-block: 18px 28px; }
+  .phone-only { display: block; }
+  .btn { min-height: 44px; } .btn.sm { min-height: 40px; }
+  .view-head { align-items: start; }
+  h1 { font-size: 1.6rem; }
+
+  /* bottom tab bar + More sheet */
+  .tabbar { display: grid; grid-template-columns: repeat(6, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; height: var(--tabh); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: rgba(7,12,23,.98); border-top: 1px solid var(--line); }
+  .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; border: 0; background: none; color: var(--muted); font-size: .68rem; font-weight: 600; cursor: pointer; }
+  .tabbar svg { width: 23px; height: 23px; }
+  .tabbar button.on { color: var(--cyan); }
+  .tabbar button.on svg { filter: drop-shadow(0 0 6px rgba(56,215,245,.55)); }
+  .sheet-back.on { display: block; position: fixed; inset: 0; z-index: 200; background: rgba(2,6,14,.6); animation: viewIn .18s ease; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 85%; overflow-y: auto; background: var(--panel); border-top: 1px solid var(--line2); border-radius: 18px 18px 0 0; padding: 4px 12px calc(14px + env(safe-area-inset-bottom)); display: grid; gap: 2px; animation: sheetUp .22s ease; }
+  .sheet-grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line2); margin: 8px auto 6px; }
+  .sheet .mini-prog { margin-bottom: 6px; }
+  .sheet button { display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; color: var(--ink); text-align: left; font-weight: 600; cursor: pointer; }
+  .sheet button.on { background: var(--cyan-soft); }
+  .sheet button svg { width: 22px; height: 22px; flex: none; color: var(--cyan); }
+  .sheet small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* 3D Build: full height above the tab bar, scrolling tool strip, docked step sheet */
+  body.v-build .topbar { display: none; }
+  body.v-build .main { padding-bottom: 0; }
+  .stage { height: calc(100vh - var(--tabh)); height: calc(100dvh - var(--tabh)); min-height: 0; }
+  .stage.fs { height: 100%; }
+  .tools { top: calc(10px + env(safe-area-inset-top)); left: 0; right: 0; max-width: none; flex-wrap: nowrap; overflow-x: auto; padding: 0 12px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .tools::-webkit-scrollbar { display: none; }
+  .tool { flex: none; height: 40px; backdrop-filter: none; background: rgba(10,17,32,.94); }
+  .status, .stepdots { display: none; }
+  .stepcard { left: 0; right: 0; bottom: 0; width: auto; max-height: 62%; overflow-y: auto; overscroll-behavior: contain; border-radius: 18px 18px 0 0; border-width: 1px 0 0; padding: 0 max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); gap: 8px; backdrop-filter: none; background: rgba(8,14,27,.97); }
+  .stage.fs .stepcard { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .sheet-handle { display: block; width: 100%; height: 24px; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; }
+  .sheet-handle i { display: block; width: 44px; height: 5px; border-radius: 9px; background: var(--line2); margin: 9px auto 0; }
+  .stepcard h2 { font-size: 1.16rem; }
+  .stepcard.min .kid { display: none; }   /* compact sheet: title, the one action, buttons. Swipe up for the explanation */
+  .stepcard .kid { font-size: .98rem; }
+  .donow { padding: 9px 11px; } .donow span { font-size: .98rem; }
+  .stepnav .btn { min-height: 46px; padding: 0 13px; }
+  .stepnav { display: grid; grid-template-columns: auto auto 1fr; }
+  .stepnav .grow, #prevBtn .lbl { display: none; }
+  .stepnav #nextBtn { justify-content: center; white-space: nowrap; }
+  .stepnav .btn { white-space: nowrap; }
+  .icobtn { width: 40px; height: 40px; }
+  .restore { left: max(12px, env(safe-area-inset-left)); bottom: 12px; }
+  .stage.fs .restore { bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .restore button { height: 44px; backdrop-filter: none; }
+
+  /* dialogs become bottom sheets */
+  .modal-back { place-items: end center; padding: 0; backdrop-filter: none; }
+  .modal { width: 100%; border-radius: 18px 18px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .modal .row .btn { flex: 1; justify-content: center; }
+
+  /* content */
+  .hero-main { padding: 20px; }
+  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .prog-card .ring { width: 96px; height: 96px; }
+  .phase-row { grid-template-columns: 96px 1fr 40px; font-size: .84rem; }
+  .codeblock pre { max-height: 340px; font-size: .74rem; }
+  .comp-chip, .stepitem, .qa button { min-height: 44px; }
+  .checkrow input { width: 22px; height: 22px; margin-top: 1px; }
+}
+/* phone held sideways: the step card docks on the left so the robot keeps the right side */
+@media (max-height: 520px) and (pointer: coarse) and (orientation: landscape) {
+  :root { --tabh: calc(50px + env(safe-area-inset-bottom)); }
+  .tabbar button { flex-direction: row; gap: 6px; font-size: .74rem; }
+  .stepcard { right: auto; top: 58px; width: min(380px, 46%); max-height: none; border-radius: 0 18px 0 0; border-width: 1px 1px 0 0; }
+  .sheet-handle { display: none; }
+}
+
+/* ---------- Desk Buddy additions ---------- */
+.nav a.navlink, .sheet a.navlink { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 500; transition: background .15s, color .15s; }
+.nav a.navlink svg { width: 19px; height: 19px; flex: none; }
+.nav a.navlink:hover { background: var(--panel); color: var(--ink); }
+.nav a.navlink.here { color: var(--ink); }
+.app.collapsed .nav a.navlink span { display: none; }
+.app.collapsed .nav a.navlink { justify-content: center; }
+.tag-new { font: 700 .62rem var(--mono); letter-spacing: .08em; color: #021018; background: var(--cyan); border-radius: 5px; padding: 1px 5px; margin-left: auto; }
+.tools .sep { width: 1px; height: 28px; background: var(--line2); margin: 4px 2px; flex: none; }
+.tool.sim { border-color: rgba(56,215,245,.35); }
+.tool.sim:active { background: rgba(56,215,245,.25); }
+.modecard { scroll-margin-top: 20px; display: grid; gap: 12px; }
+.modecard .mhead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.modecard .mnum { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.4rem; background: var(--cyan-soft); border: 1px solid rgba(56,215,245,.35); flex: none; }
+.modecard .mhead .grow { flex: 1; min-width: 140px; }
+.ctrl { display: grid; grid-template-columns: minmax(110px, 160px) 1fr; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ctrl div { padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: .92rem; }
+.ctrl div:nth-child(odd) { background: #0b1324; font-weight: 600; color: var(--cyan); font-family: var(--mono); font-size: .8rem; display: flex; align-items: center; }
+.ctrl div:nth-last-child(-n+2) { border-bottom: 0; }
+.ticks { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; color: #c9d6ea; font-size: .92rem; }
+.codefile { padding: 0; overflow: hidden; margin-bottom: 16px; }
+.codefile .fhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.codefile .fhead h3 { font-family: var(--mono); font-size: 1rem; }
+.codefile .fhead .grow { flex: 1; }
+.codefile pre { margin: 0; padding: 14px; overflow: auto; max-height: 560px; font: .8rem/1.55 var(--mono); color: #cfe2ff; background: #070d19; tab-size: 2; }
+.steps-ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.steps-ol li { color: #c9d6ea; }
+.steps-ol li b { color: var(--ink); }
+.setup-svg { display: block; width: 100%; height: auto; }
+.rm { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.rm:last-child { border-bottom: 0; }
+.rm .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: var(--panel2); flex: none; font-size: 1.1rem; }
+.minimode { cursor: pointer; display: grid; gap: 4px; transition: border-color .15s, transform .15s; }
+.minimode:hover { border-color: #2a6f8f; transform: translateY(-2px); }
+.minimode .em { font-size: 1.6rem; }
+.projswitch { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.url { font-family: var(--mono); font-size: .82rem; word-break: break-all; color: var(--cyan); }
+@media (max-width: 760px), (max-height: 520px) and (pointer: coarse) {
+  .sheet a.navlink { min-height: 58px; padding: 10px 12px; border-radius: 12px; color: var(--ink); font-weight: 600; gap: 14px; }
+  .sheet a.navlink svg { width: 22px; height: 22px; flex: none; color: var(--cyan); }
+  .tabbar { grid-template-columns: repeat(6, 1fr); }
+  .tools .sep { height: 32px; }
+  .ctrl { grid-template-columns: 1fr; }
+  .ctrl div:nth-child(odd) { border-bottom: 0; padding-bottom: 2px; }
+  .ctrl div:nth-child(even) { padding-top: 2px; }
+  .codefile pre { max-height: 420px; font-size: .74rem; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="brand-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38d7f5" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.2"/><rect x="9" y="10" width="2" height="3.4" rx="1" fill="#38d7f5" stroke="none"/><rect x="13" y="10" width="2" height="3.4" rx="1" fill="#38d7f5" stroke="none"/></svg></div>
+      <div><b>RoboBuild Lab</b><small>Desk Buddy · M5Dial</small></div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <div class="sec">Project</div>
+      <button data-view="dashboard" data-tip="Overview and progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></button>
+      <button data-view="build" data-tip="Interactive 3D Dial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D Tutorial</span></button>
+      <button data-view="setup" data-tip="Cable, Arduino IDE, upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0z"/><path d="M12 16v5"/></svg><span>Setup</span></button>
+      <button data-view="modes" data-tip="Every mode and how to use it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.4"/><circle cx="18.2" cy="10" r="1.4"/><circle cx="16" cy="17.5" r="1.4"/><circle cx="8" cy="17.5" r="1.4"/><circle cx="5.8" cy="10" r="1.4"/></svg><span>Modes Guide</span></button>
+      <div class="sec">Learn</div>
+      <button data-view="learn" data-tip="How each part works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn the Parts</span></button>
+      <button data-view="code" data-tip="The sketch and config.h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Code</span></button>
+      <div class="sec">Present</div>
+      <button data-view="exam" data-tip="Questions and answers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision</span></button>
+      <button data-view="progress" data-tip="Your progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress</span></button>
+      <div class="sec">Projects</div>
+      <a class="navlink" href="index.html" data-tip="The 4WD robot tutorial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="7" width="14" height="10" rx="2"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><path d="M12 4v3M3 10v4M21 10v4"/></svg><span>4WD Robot</span></a>
+      <a class="navlink here" href="desk-buddy.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/></svg><span>Desk Buddy</span><span class="tag-new">NEW</span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="mini-prog"><span id="miniProgText">0 / 0 steps</span><div class="bar"><i id="miniProgBar"></i></div></div>
+      <button class="collapse-btn" id="collapse" type="button" data-tip="Collapse sidebar" aria-label="Collapse sidebar">⇤</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar"><div class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#38d7f5" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.2"/></svg></div><b class="t" id="topTitle">Dashboard</b><span class="chip cy" id="topProg">0 / 0</span></div>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="view" id="view-dashboard">
+      <div class="hero">
+        <div class="card glow hero-main">
+          <div class="eyebrow">Project 2 · M5Stack Dial · ESP32-S3 · NFC</div>
+          <h1>Desk Buddy on the M5Stack Dial</h1>
+          <p class="lede">A round gadget for your desk. It has cute eyes that blink and react, a study timer, a Bluetooth volume knob, a remote for your robot car, two games, a counter, and NFC magic cards. No wiring! Just a USB-C cable and one upload.</p>
+          <div class="hero-actions">
+            <button class="btn primary" id="dashContinue" type="button" data-tip="Open the 3D Dial at your current step">▶ <span id="dashContinueText">Start in 3D</span></button>
+            <button class="btn" type="button" data-go="setup" data-tip="Cable, Arduino IDE and upload settings">Setup</button>
+            <button class="btn" type="button" data-go="modes" data-tip="Every mode, how to use it">Modes Guide</button>
+            <a class="btn ghost" href="index.html" data-tip="Project 1: the 4WD robot">← 4WD Robot</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="prog-card">
+            <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="none" stroke="#1b2a45" stroke-width="10"/><circle id="ringArc" cx="60" cy="60" r="50" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .6s"/><defs><linearGradient id="rg"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#38d7f5"/></linearGradient></defs><text id="ringPct" x="60" y="58" text-anchor="middle" fill="#e3ecf8" font-family="Chakra Petch" font-weight="700" font-size="24">0%</text><text x="60" y="78" text-anchor="middle" fill="#8b9cb8" font-family="JetBrains Mono" font-size="9">DONE</text></svg>
+            <div style="min-width:0">
+              <div class="eyebrow">Progress</div>
+              <h2 id="dashCount">0 / 0 steps completed</h2>
+              <p class="note" id="dashCurrent">Next: step 1</p>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><b>0</b><span>wires to connect</span></div>
+            <div class="kpi"><b>7</b><span>modes</span></div>
+            <div class="kpi"><b id="kpiChecks">0</b><span>real-Dial checks</span></div>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin:28px 0 12px">What your Dial can do</h2>
+      <div class="grid g3" id="dashModes"></div>
+
+      <h2 style="margin:28px 0 12px">Learning modules</h2>
+      <div class="grid g3" id="dashModules"></div>
+
+      <div class="grid g2" style="margin-top:28px">
+        <div class="card">
+          <div class="eyebrow">Roadmap</div>
+          <h3>Coming next</h3>
+          <div style="margin-top:8px">
+            <div class="rm"><div class="ico">💡</div><div><b>Smart-switch relays over ESP-NOW</b><p class="note">Turn a desk lamp or fan on and off from the knob. A second ESP32 with a relay board listens for the Dial.</p></div></div>
+            <div class="rm"><div class="ico">🔔</div><div><b>PC notifications</b><p class="note">A small program on your computer sends alerts (new mail, meeting soon) and the buddy shows them.</p></div></div>
+            <div class="rm"><div class="ico">🚗</div><div><b>Car-side receiver code</b><p class="note">The ESP32 code for the robot car, so Mode 4 can really drive it and show its distance.</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="eyebrow">Other project</div>
+          <h3>4WD obstacle-avoiding robot</h3>
+          <p class="note" style="margin:8px 0 14px">Project 1: an Arduino car with ultrasonic eyes on a servo neck. Build it in 3D, wire by wire. Later the Desk Buddy will be its remote.</p>
+          <a class="btn" href="index.html">Open the 4WD robot tutorial →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 3D TUTORIAL ===================== -->
+    <section class="view" id="view-build">
+      <div class="stage" id="stage">
+        <canvas id="scene" aria-label="Interactive 3D model of the M5Stack Dial"></canvas>
+        <div class="overlay flash" id="flash"></div>
+        <div class="overlay loading3d" id="loading3d"><div><div class="spinner"></div>Loading the 3D Dial…</div></div>
+
+        <div class="overlay tools" id="tools">
+          <button class="tool" id="fsBtn" type="button" data-tip-down data-tip="Fullscreen 3D (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fsText">Fullscreen</span></button>
+          <button class="tool" id="resetBtn" type="button" data-tip-down data-tip="Back to the view for this step (R)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset view</button>
+          <button class="tool" data-zoom="top" type="button" data-tip-down data-tip="Look at the screen">Screen</button>
+          <button class="tool" data-zoom="ports" type="button" data-tip-down data-tip="Look at the ports">Ports</button>
+          <button class="tool" data-zoom="inside" type="button" data-tip-down data-tip="Open it up">Inside</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="tool sim" data-sim="left" type="button" data-tip-down data-tip="Turn the knob left (A)">◀ Turn</button>
+          <button class="tool sim" data-sim="right" type="button" data-tip-down data-tip="Turn the knob right (D)">Turn ▶</button>
+          <button class="tool sim" data-sim="press" type="button" data-tip-down data-tip="Press the knob (S)">Press</button>
+          <button class="tool sim" data-sim="double" type="button" data-tip-down data-tip="Double-press the knob">Double-press</button>
+          <button class="tool sim" data-sim="hold" type="button" data-tip-down data-tip="Hold the knob 1 s: Mode menu (M)">Hold knob</button>
+          <button class="tool sim" data-sim="tap" type="button" data-tip-down data-tip="Tap the screen (T)">Tap screen</button>
+          <button class="tool sim" data-sim="holdscreen" type="button" data-tip-down data-tip="Hold your finger on the screen">Hold screen</button>
+        </div>
+
+        <div class="overlay status">
+          <div class="stat" id="stepStat"><span class="led"></span><span id="stepStatText">Start</span></div>
+          <div class="stat" id="modeStat"><span class="led"></span><span id="modeStatText">Screen: Buddy</span></div>
+          <div class="stat" style="font-weight:500;color:var(--muted)"><span class="kbd">A</span><span class="kbd">D</span> turn · <span class="kbd">S</span> press · <span class="kbd">T</span> tap · <span class="kbd">←</span><span class="kbd">→</span> steps</div>
+        </div>
+
+        <div class="overlay stepcard" id="stepcard">
+          <button class="sheet-handle" id="sheetHandle" type="button" aria-label="Show more or less of this step (swipe up or down)"><i></i></button>
+          <div class="top"><span class="phase" id="scPhase">Ready</span><span class="right"><span class="chip" id="scNum">0 / 0</span><button class="icobtn" id="cardMin" type="button" aria-label="Minimise the step card" data-tip="Minimise (H)">−</button></span></div>
+          <h2 id="scTitle">Meet your Desk Buddy</h2>
+          <p class="kid" id="scKid">Press Start. Spin the Dial with your mouse or finger.</p>
+          <div class="donow" id="scDo"><b>Do this now</b><span id="scDoText">Press Start.</span></div>
+          <div class="collapsible">
+            <details class="grown" id="scGrownWrap"><summary>For grown-ups: exact details</summary><div id="scGrown" style="margin-top:6px"></div></details>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button class="btn sm" id="learnBtn" type="button" data-tip="Open the lesson for this part">Learn this part</button>
+              <button class="btn sm" id="modeBtnGo" type="button" data-tip="Open this mode in the Modes Guide">Modes Guide</button>
+              <button class="btn sm ghost" id="minBtn" type="button" data-tip="Hide details">Hide details</button>
+            </div>
+          </div>
+          <div class="stepnav">
+            <button class="btn" id="prevBtn" type="button" data-tip="Previous step (←)" aria-label="Previous step">◀<span class="lbl"> Previous</span></button>
+            <button class="btn" id="doneBtn" type="button" data-tip="Mark this step complete">✓ Mark complete</button>
+            <span class="grow"></span>
+            <button class="btn primary" id="nextBtn" type="button" data-tip="Next step (→). Marks this one done.">Next ▶</button>
+          </div>
+        </div>
+        <div class="overlay restore" id="restoreWrap"><button id="cardRestore" type="button" aria-label="Show the step card" data-tip="Show the step card (H)"><span>▴</span><span>Show guide</span><span class="n" id="restoreNum"></span></button></div>
+        <div class="overlay stepdots" id="stepdots"></div>
+      </div>
+    </section>
+
+    <!-- ===================== SETUP ===================== -->
+    <section class="view" id="view-setup">
+      <div class="view-head"><div><div class="eyebrow">Setup</div><h1>No wiring. One cable, one upload.</h1><p class="lede">Everything is already inside the Dial. You only need a USB-C cable that carries data, Arduino IDE, and the right settings.</p></div><button class="btn" type="button" data-step="8">Open in 3D</button></div>
+
+      <div class="card glow">
+        <h3>How it connects</h3>
+        <svg class="setup-svg" viewBox="0 0 640 230" role="img" aria-label="A laptop connects to the M5Stack Dial with a USB-C data cable. Optional: a Grove sensor in Port A and NFC cards.">
+          <g font-family="JetBrains Mono" font-size="13" fill="#8b9cb8">
+            <rect x="20" y="50" width="150" height="96" rx="8" fill="#0b1424" stroke="#24385c" stroke-width="2"/><rect x="34" y="62" width="122" height="72" rx="4" fill="#0f1c33"/><path d="M8 150h174l-12 14H20z" fill="#24385c"/>
+            <text x="95" y="102" text-anchor="middle" fill="#e3ecf8" font-size="14">Arduino IDE</text>
+            <path class="flowline" d="M182 120 C 260 120, 270 120, 360 120" stroke="#38d7f5" stroke-width="4" fill="none"/>
+            <text x="270" y="106" text-anchor="middle" fill="#38d7f5">USB-C DATA cable</text>
+            <text x="270" y="146" text-anchor="middle">power + code</text>
+            <circle cx="430" cy="120" r="64" fill="#59606b"/><circle cx="430" cy="120" r="56" fill="#c9ced6"/><circle cx="430" cy="120" r="44" fill="#000"/>
+            <rect x="410" y="104" width="13" height="22" rx="6" fill="#38d7f5"/><rect x="437" y="104" width="13" height="22" rx="6" fill="#38d7f5"/>
+            <text x="430" y="210" text-anchor="middle" fill="#e3ecf8" font-size="14">M5Stack Dial</text>
+            <path d="M478 168 L540 196" stroke="#d8322e" stroke-width="3" stroke-dasharray="5 5"/><rect x="540" y="182" width="84" height="34" rx="6" fill="#0b1424" stroke="#d8322e" stroke-width="2"/><text x="582" y="203" text-anchor="middle" fill="#fca5a5" font-size="12">ENV sensor</text>
+            <text x="560" y="174" text-anchor="middle" font-size="11">optional · Port A</text>
+            <rect x="530" y="30" width="96" height="60" rx="8" fill="#e6ebf2" transform="rotate(-8 578 60)"/><text x="578" y="66" text-anchor="middle" fill="#0d1628" font-size="12" transform="rotate(-8 578 60)">NFC card</text>
+            <path d="M520 70 Q 490 80 478 92" stroke="#8b9cb8" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="warnbox" style="margin:16px 0">Many cheap USB-C cables only charge. They have no data wires. If your computer does not see the Dial, change the cable first.</div>
+
+      <div class="card" style="padding:0">
+        <div style="padding:16px 16px 8px"><h3>What you need</h3><p class="note">Prices are rough Indian online prices and change often.</p></div>
+        <div class="tbl" style="border:0;border-top:1px solid var(--line);border-radius:0">
+          <table>
+            <thead><tr><th>Item</th><th>Why</th><th>Price</th></tr></thead>
+            <tbody>
+              <tr><td><b>M5Stack Dial</b></td><td>The Desk Buddy itself. Screen, knob, NFC, clock and buzzer are all inside.</td><td>about ₹3,000–4,000</td></tr>
+              <tr><td><b>USB-C data cable</b></td><td>Power and uploading code. Must carry data, not only charge.</td><td>₹150–300</td></tr>
+              <tr><td><b>Computer</b> with Arduino IDE 2</td><td>To upload the sketch. Arduino IDE is free.</td><td>free</td></tr>
+              <tr><td><b>Blank NFC cards</b>, 13.56 MHz (MIFARE Classic 1K or NTAG213)</td><td>Magic cards: study card, robot card, party card.</td><td>₹10–20 each</td></tr>
+              <tr><td><b>ENV sensor unit</b> (Grove) <span class="chip">optional</span></td><td>Room temperature and humidity. Plugs into Port A (red).</td><td>about ₹600–1,000</td></tr>
+              <tr><td><b>Power bank or LiPo battery</b> <span class="chip">optional</span></td><td>Use the Dial away from the computer.</td><td>₹300–800</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card">
+          <h3>Install, step by step</h3>
+          <ol class="steps-ol" style="margin-top:10px">
+            <li><b>Install Arduino IDE 2</b> from <span class="url">arduino.cc/en/software</span>.</li>
+            <li><b>File → Preferences</b>. In “Additional boards manager URLs” paste:<br><span class="url">https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</span></li>
+            <li><b>Tools → Board → Boards Manager</b>. Search <code>M5Stack</code>. Install it.</li>
+            <li><b>Tools → Manage Libraries</b>. Search <code>M5Dial</code>. Install it. Choose “Install all”.</li>
+            <li>Make a folder called <code>desk_buddy_dial</code>. Put <code>desk_buddy_dial.ino</code> and <code>config.h</code> inside (see <a href="#code" data-go="code">Code</a>).</li>
+            <li><b>Open config.h.</b> Type your Wi-Fi name and password, and your city’s latitude/longitude for the weather. Save.</li>
+            <li>Plug in the Dial. Choose the settings on the right. Press <b>Upload (→)</b>.</li>
+          </ol>
+        </div>
+        <div class="card" style="padding:0">
+          <div style="padding:16px 16px 8px"><h3>Upload settings</h3><p class="note">Tools menu in Arduino IDE.</p></div>
+          <div class="tbl" style="border:0;border-top:1px solid var(--line);border-radius:0">
+            <table>
+              <tbody>
+                <tr><th>Board</th><td><b>M5Dial</b></td></tr>
+                <tr><th>FQBN</th><td><code>m5stack:esp32:m5stack_dial</code></td></tr>
+                <tr><th>Flash Size</th><td><b>8MB</b></td></tr>
+                <tr><th>Partition Scheme</th><td><b>8M with spiffs (3MB APP/1.5MB SPIFFS)</b></td></tr>
+                <tr><th>Port</th><td>The new COM port (Windows) or <code>/dev/ttyACM0</code> (Linux)</td></tr>
+                <tr><th>Wi-Fi</th><td>2.4 GHz only. A phone hotspot works.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>If something goes wrong</h3>
+        <div class="grid g2" style="margin-top:10px">
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">No port appears</h4><p class="note">Use a data cable. Try another USB port. Unplug and plug back in.</p></div>
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">“Library not found” error</h4><p class="note">Open Library Manager and install the library named in the error.</p></div>
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">“Sketch too big”</h4><p class="note">Check Flash Size 8MB and the Partition Scheme above.</p></div>
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">Time or weather is wrong</h4><p class="note">Check the Wi-Fi name and password in config.h. Use 2.4 GHz Wi-Fi.</p></div>
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">Upload fails half-way</h4><p class="note">Unplug, plug in again, upload again. If it still fails, put the Dial in download mode (see M5Stack’s M5Dial docs).</p></div>
+          <div><h4 style="color:var(--cyan);margin-bottom:4px">Volume knob not in Bluetooth list</h4><p class="note">Open Mode 3 first. Then search for “Desk Buddy” on your PC or phone.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODES GUIDE ===================== -->
+    <section class="view" id="view-modes">
+      <div class="view-head"><div><div class="eyebrow">Modes Guide</div><h1>Every mode, and how to use it</h1><p class="lede">Hold the knob for about 1 second to open the Mode menu. Turn to choose. Press to open. Hold again any time to go back.</p></div><button class="btn primary" type="button" data-step="13">▶ Try the menu in 3D</button></div>
+      <div class="grid" id="modeList"></div>
+    </section>
+
+    <!-- ===================== LEARN ===================== -->
+    <section class="view" id="view-learn">
+      <div class="view-head"><div><div class="eyebrow">Learn the Parts</div><h1>How the Desk Buddy works</h1><p class="lede">Short lessons. Simple first, then the technical part.</p></div></div>
+      <div class="learn-nav" id="learnNav"></div>
+      <div class="grid" id="learnList"></div>
+    </section>
+
+    <!-- ===================== CODE ===================== -->
+    <section class="view" id="view-code">
+      <div class="view-head"><div><div class="eyebrow">Code · desk_buddy_dial.ino + config.h</div><h1>The sketch</h1><p class="lede">Two files. Put both in one folder called <code>desk_buddy_dial</code>. You only need to change <code>config.h</code>.</p></div></div>
+      <div class="card" style="margin-bottom:16px">
+        <h3>How to open it in Arduino IDE</h3>
+        <ol class="steps-ol" style="margin-top:10px">
+          <li>Download both files (buttons below).</li>
+          <li>Make a folder <code>desk_buddy_dial</code> and put both files inside. The folder name must match the .ino name.</li>
+          <li>Double-click <code>desk_buddy_dial.ino</code>. Arduino IDE opens it, with <code>config.h</code> as a second tab.</li>
+          <li>In <code>config.h</code>, set your Wi-Fi and, later, your NFC card IDs. Then upload.</li>
+        </ol>
+      </div>
+      <div id="codeFiles"></div>
+    </section>
+
+    <!-- ===================== QUICK REVISION ===================== -->
+    <section class="view" id="view-exam">
+      <div class="view-head"><div><div class="eyebrow">Quick Revision</div><h1>Questions about the Desk Buddy</h1><p class="lede">Read the question, answer in your head, then tap to check.</p></div><div style="display:flex;gap:8px"><button class="btn sm" id="openAll" type="button">Show all answers</button><button class="btn sm" id="closeAll" type="button">Hide all</button></div></div>
+      <div class="grid" id="qaList"></div>
+    </section>
+
+    <!-- ===================== PROGRESS ===================== -->
+    <section class="view" id="view-progress">
+      <div class="view-head"><div><div class="eyebrow">Progress</div><h1 id="progTitle">0 / 0 steps completed</h1><p class="lede">Saved in this browser on this device. Separate from the 4WD robot’s progress.</p></div>
+        <div style="display:flex;gap:8px;align-items:center"><button class="btn sm quiet-danger" id="resetProg" type="button" data-tip="Clears your saved progress (asks first)">↺ Reset progress</button></div></div>
+      <div class="card" style="margin-bottom:20px"><h3>On your real Dial</h3><p class="note" style="margin:4px 0 8px">Tick each one when it works on your own Dial.</p><div id="checkList"></div></div>
+      <h3 style="margin-bottom:10px">3D steps</h3>
+      <div id="progSteps"></div>
+    </section>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button type="button" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Home</span></button>
+    <button type="button" data-view="build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>3D</span></button>
+    <button type="button" data-view="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0z"/><path d="M12 16v5"/></svg><span>Setup</span></button>
+    <button type="button" data-view="modes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.4"/><circle cx="18.2" cy="10" r="1.4"/><circle cx="16" cy="17.5" r="1.4"/><circle cx="8" cy="17.5" r="1.4"/><circle cx="5.8" cy="10" r="1.4"/></svg><span>Modes</span></button>
+    <button type="button" data-view="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Code</span></button>
+    <button type="button" id="moreBtn" aria-haspopup="dialog" aria-controls="moreSheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
+  </nav>
+  <div class="sheet-back" id="moreSheet" role="dialog" aria-modal="true" aria-label="More sections">
+    <div class="sheet">
+      <div class="sheet-grab" aria-hidden="true"></div>
+      <div class="mini-prog"><span id="moreProgText">0 / 0 steps</span><div class="bar"><i id="moreProgBar"></i></div></div>
+      <button type="button" data-view="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn the Parts<small>Encoder, touch, NFC, Bluetooth, ESP-NOW</small></span></button>
+      <button type="button" data-view="exam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision<small>Questions with answers</small></span></button>
+      <button type="button" data-view="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress<small>Steps, real-Dial checks, reset</small></span></button>
+      <a class="navlink" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="2"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><path d="M12 4v3M3 10v4M21 10v4"/></svg><span>4WD Robot tutorial<small style="display:block;color:var(--muted);font-size:.8rem;font-weight:400">Project 1: the Arduino car</small></span></a>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="modal">
+    <h3 id="resetTitle">Reset your Desk Buddy progress?</h3>
+    <p class="note">This clears what is saved on this device for the Desk Buddy only:</p>
+    <ul><li>completed 3D steps</li><li>the step the 3D Tutorial was on</li><li>the real-Dial check-list ticks</li></ul>
+    <p class="note">The 4WD robot’s progress is not touched. This can’t be undone.</p>
+    <div class="row"><button class="btn sm" id="resetNo" type="button">Cancel</button><button class="btn sm danger" id="resetYes" type="button">Yes, reset progress</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="desk_buddy_engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var E = window.DeskBuddyEngine;
+  if (!E) { document.body.insertAdjacentHTML('afterbegin', '<p style="padding:20px;color:#f87171">The Desk Buddy engine did not load. Reload the page.</p>'); return; }
+  var STEPS = E.STEPS, N = STEPS.length;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ------------------------------------------------------------------ progress (this device only, own key)
+  var KEY = 'roboBuildLab.deskBuddy.v1', state = { done: {}, cur: 0, checks: {} };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && typeof saved === 'object') { state.done = saved.done || {}; state.cur = +saved.cur || 0; state.checks = saved.checks || {}; } } catch (e) { }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { } }
+  function doneCount() { return STEPS.filter(function (s) { return state.done[s.id]; }).length; }
+  function nextOpen() { for (var i = 0; i < N; i++) if (!state.done[STEPS[i].id]) return i + 1; return N; }
+
+  // ------------------------------------------------------------------ navigation
+  var VIEWS = ['dashboard', 'build', 'setup', 'modes', 'learn', 'code', 'exam', 'progress'];
+  var TITLES = { dashboard: 'Desk Buddy', build: '3D Tutorial', setup: 'Setup', modes: 'Modes Guide', learn: 'Learn the Parts', code: 'Code', exam: 'Quick Revision', progress: 'Progress' };
+  var MORE = ['learn', 'exam', 'progress'];
+  var PHONE = window.matchMedia ? matchMedia('(max-width: 760px), (max-height: 520px) and (pointer: coarse)') : { matches: false };
+  var engine = null, currentView = null;
+  function show(view, anchor) {
+    if (VIEWS.indexOf(view) < 0) view = 'dashboard';
+    currentView = view;
+    VIEWS.forEach(function (v) { $('view-' + v).classList.toggle('on', v === view); document.body.classList.toggle('v-' + v, v === view); });
+    document.querySelectorAll('#nav button, #tabbar [data-view], #moreSheet [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
+    $('moreBtn').classList.toggle('on', MORE.indexOf(view) >= 0);
+    $('topTitle').textContent = TITLES[view];
+    $('app').classList.remove('drawer');
+    if (view === 'build') ensureEngine();
+    if (engine) engine.setActive(view === 'build');
+    setTimeout(updateInset, 0);
+    if (view === 'dashboard') renderDashboard();
+    if (view === 'progress') renderProgress();
+    if (view === 'code') loadCode();
+    try { if (location.hash !== '#' + view) history.replaceState(null, '', '#' + view); } catch (e) { }
+    if (anchor) { var el = $(anchor); if (el) setTimeout(function () { el.scrollIntoView({ block: 'start' }); }, 30); }
+    else if (view !== 'build') window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('#nav button').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-view')); }); });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-go]'); if (t) { e.preventDefault(); show(t.getAttribute('data-go'), t.getAttribute('data-anchor')); return; }
+    var st = e.target.closest('[data-step]'); if (st) openStep(+st.getAttribute('data-step'));
+  });
+  $('collapse').addEventListener('click', function () { $('app').classList.toggle('collapsed'); this.textContent = $('app').classList.contains('collapsed') ? '⇥' : '⇤'; setTimeout(function () { engine && engine.resize(); }, 50); });
+  document.querySelectorAll('#tabbar [data-view], #moreSheet [data-view]').forEach(function (b) { b.addEventListener('click', function () { closeMore(); show(b.getAttribute('data-view')); }); });
+  function closeMore() { $('moreSheet').classList.remove('on'); }
+  $('moreBtn').addEventListener('click', function () { $('moreSheet').classList.toggle('on'); });
+  $('moreSheet').addEventListener('click', function (e) { if (e.target === this) closeMore(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMore(); $('resetModal').classList.remove('on'); } });
+
+  function openStep(n) { state.cur = n; save(); show('build'); if (engine) engine.go(n); }
+
+  // ------------------------------------------------------------------ 3D tutorial
+  function ensureEngine() {
+    if (engine) return;
+    if (!window.THREE || !THREE.OrbitControls) { $('loading3d').innerHTML = '<div>3D could not load. Check the internet connection and reload.</div>'; return; }
+    var fonts = document.fonts && document.fonts.load ? Promise.race([Promise.all([document.fonts.load('700 40px "JetBrains Mono"'), document.fonts.load('700 40px "Chakra Petch"')]), new Promise(function (r) { setTimeout(r, 2500); })]) : Promise.resolve();
+    fonts.then(function () {
+      if (engine) return;
+      var startAt = state.cur || 0;   // create() shows the overview first, which would overwrite the saved step
+      try { engine = E.create({ canvas: $('scene'), onStep: onStep, onSim: onSim }); }
+      catch (err) { $('loading3d').innerHTML = '<div>This device can’t show 3D (' + esc(err.message) + ').</div>'; return; }
+      $('loading3d').style.display = 'none';
+      if (PHONE.matches) setDetails(false);
+      engine.go(startAt);
+      updateInset();
+      engine.setActive(currentView === 'build');
+    });
+  }
+  var STEP_MODE = {};   // step number -> mode card id
+  function onSim(m) { $('modeStatText').textContent = 'Screen: ' + m.name; }
+  function onStep(n, s) {
+    state.cur = n; save();
+    var fl = $('flash'); fl.classList.add('on'); setTimeout(function () { fl.classList.remove('on'); }, 30);
+    $('scNum').textContent = $('restoreNum').textContent = n + ' / ' + N;
+    $('stepStatText').textContent = n === 0 ? 'Overview' : 'Step ' + n + ' of ' + N + (state.done[s.id] ? ' · done' : '');
+    $('prevBtn').disabled = n === 0;
+    $('nextBtn').textContent = n === 0 ? 'Start ▶' : n === N ? 'Finish ✓' : 'Next ▶';
+    if (!s) {
+      $('scPhase').textContent = 'Overview'; $('scTitle').textContent = 'Meet your Desk Buddy';
+      $('scKid').textContent = 'This is the M5Stack Dial you will turn into a Desk Buddy. Spin it. Zoom in. Try the buttons at the top.';
+      $('scDoText').textContent = 'Press Start.';
+      $('scGrown').innerHTML = 'The buttons at the top (Turn, Press, Tap…) work like the real knob and screen. You can also click the 3D screen.';
+      $('learnBtn').style.display = 'none'; $('modeBtnGo').style.display = 'none'; $('doneBtn').style.display = 'none';
+    } else {
+      $('scPhase').textContent = s.phase; $('scTitle').textContent = s.title; $('scKid').textContent = s.kid;
+      var d = $('scDo'); d.style.animation = 'none'; void d.offsetWidth; d.style.animation = '';
+      $('scDoText').textContent = s.doNow;
+      $('scGrown').innerHTML = s.grown;
+      $('learnBtn').style.display = s.learn ? '' : 'none'; $('learnBtn').onclick = function () { show('learn', 'lesson-' + s.learn); };
+      $('modeBtnGo').style.display = STEP_MODE[n] ? '' : 'none'; $('modeBtnGo').onclick = function () { show('modes', STEP_MODE[n]); };
+      $('doneBtn').style.display = '';
+      $('doneBtn').textContent = state.done[s.id] ? '↺ Mark not done' : '✓ Mark complete';
+    }
+    renderDots(); updateMini();
+  }
+  function renderDots() {
+    var c = $('stepdots'); if (!c.children.length) STEPS.forEach(function (s) { var i = document.createElement('i'); i.title = s.n + '. ' + s.title; i.addEventListener('click', function () { engine && engine.go(s.n); }); c.appendChild(i); });
+    Array.prototype.forEach.call(c.children, function (el, i) { el.className = (state.done[STEPS[i].id] ? 'done ' : '') + (i + 1 === state.cur ? 'now' : ''); });
+  }
+  $('nextBtn').addEventListener('click', function () {
+    if (!engine) return; var n = engine.cur();
+    if (n > 0) { state.done[STEPS[n - 1].id] = true; save(); }
+    if (n < N) engine.next(); else { onStep(n, STEPS[n - 1]); show('progress'); }
+  });
+  $('prevBtn').addEventListener('click', function () { engine && engine.prev(); });
+  $('doneBtn').addEventListener('click', function () { if (!engine) return; var n = engine.cur(); if (!n) return; var id = STEPS[n - 1].id; state.done[id] = !state.done[id]; save(); onStep(n, STEPS[n - 1]); });
+  $('resetBtn').addEventListener('click', function () { engine && engine.resetView(); });
+  document.querySelectorAll('[data-zoom]').forEach(function (b) { b.addEventListener('click', function () { if (engine) engine.zoom(b.getAttribute('data-zoom')); }); });
+  document.querySelectorAll('[data-sim]').forEach(function (b) { b.addEventListener('click', function () { if (engine) engine.input(b.getAttribute('data-sim')); }); });
+  function setCardHidden(h) {
+    $('stepcard').classList.toggle('gone', h); $('restoreWrap').classList.toggle('on', h); updateInset();
+    $('restoreNum').textContent = $('scNum').textContent;
+    (h ? $('cardRestore') : $('cardMin')).focus({ preventScroll: true });
+  }
+  $('cardMin').addEventListener('click', function () { setCardHidden(true); });
+  $('cardRestore').addEventListener('click', function () { setCardHidden(false); });
+  function setDetails(on) { $('stepcard').classList.toggle('min', !on); $('minBtn').textContent = on ? 'Hide details' : 'Show details'; }
+  (function () {
+    var h = $('sheetHandle'), y0 = null;
+    h.addEventListener('pointerdown', function (e) { y0 = e.clientY; try { h.setPointerCapture(e.pointerId); } catch (err) { } });
+    h.addEventListener('pointerup', function (e) {
+      if (y0 === null) return; var dy = e.clientY - y0, min = $('stepcard').classList.contains('min'); y0 = null;
+      if (dy < -25) setDetails(true); else if (dy > 25) { if (min) setCardHidden(true); else setDetails(false); } else setDetails(min);
+    });
+    h.addEventListener('pointercancel', function () { y0 = null; });
+  })();
+  function updateInset() {
+    if (!engine) return;
+    var card = $('stepcard'), st = $('stage');
+    if (!PHONE.matches || currentView !== 'build' || card.classList.contains('gone')) { engine.setViewInset(0, 0); return; }
+    var c = card.getBoundingClientRect(), s = st.getBoundingClientRect();
+    if (c.height > s.height * 0.6 && c.right < s.right - 40) engine.setViewInset(0, c.right - s.left);
+    else engine.setViewInset(Math.max(0, s.bottom - c.top), 0);
+  }
+  if (window.ResizeObserver) { new ResizeObserver(updateInset).observe($('stepcard')); new ResizeObserver(updateInset).observe($('stage')); }
+  if (PHONE.addEventListener) PHONE.addEventListener('change', updateInset);
+  $('minBtn').addEventListener('click', function () { var m = $('stepcard').classList.toggle('min'); this.textContent = m ? 'Show details' : 'Hide details'; });
+  $('stepcard').addEventListener('click', function (e) { if (e.target === $('scTitle') && $('stepcard').classList.contains('min')) $('minBtn').click(); });
+  window.addEventListener('keydown', function (e) {
+    if (currentView !== 'build' || !engine || /input|textarea|select/i.test(e.target.tagName || '') || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key.toLowerCase();
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    else if (e.key === 'ArrowLeft') engine.prev();
+    else if (k === 'f') toggleFs();
+    else if (k === 'r') engine.resetView();
+    else if (k === 'h') setCardHidden(!$('stepcard').classList.contains('gone'));
+    else if (k === 'a') engine.input('left');
+    else if (k === 'd') engine.input('right');
+    else if (k === 's') engine.input('press');
+    else if (k === 't') engine.input('tap');
+    else if (k === 'm') engine.input('hold');
+  });
+  function isFs() { return !!(document.fullscreenElement || $('stage').classList.contains('fs')); }
+  function toggleFs() {
+    var st = $('stage');
+    if (isFs()) { if (document.fullscreenElement) document.exitFullscreen().catch(function () { }); st.classList.remove('fs'); }
+    else { st.classList.add('fs'); if (st.requestFullscreen) st.requestFullscreen().catch(function () { }); }
+    setTimeout(fsLabel, 60);
+  }
+  function fsLabel() { var on = isFs(); $('fsText').textContent = on ? 'Exit fullscreen' : 'Fullscreen'; $('fsBtn').classList.toggle('on', on); engine && engine.resize(); }
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) $('stage').classList.remove('fs'); fsLabel(); });
+  $('fsBtn').addEventListener('click', toggleFs);
+
+  // ------------------------------------------------------------------ modes guide
+  // [id, emoji, number label, name, one line, [[control, what happens]...], extra tips, 3D step]
+  var MODES = [
+    ['m-menu', '🎛️', 'All', 'Mode menu (works everywhere)', 'Your way in and out of every mode.', [
+      ['Hold knob ~1 s', 'Opens the Mode menu: a ring of icons.'], ['Turn', 'Choose a mode.'], ['Press', 'Open the chosen mode.'], ['Hold again', 'Back to the menu, from any mode.']],
+      ['Settings and pet stats are saved. They stay after power-off.'], 13],
+    ['m-buddy', '👀', '1', 'Buddy', 'Animated eyes that blink, look around and react to you.', [
+      ['Turn', 'The eyes look left or right.'], ['Turn fast', 'Dizzy eyes 😵'], ['Tap screen', 'Happy eyes ^ ^'], ['Hold screen', 'Love hearts ❤'], ['Tap 5 times quickly', 'Angry eyes 😠'],
+      ['Press', 'Clock + date + weather temperature.'], ['Double-press', 'Feed your pet 🍪'], ['Leave it 45 s', 'Sleepy. After 90 s it sleeps and the screen dims.'], ['Any touch', 'Wakes it up.']],
+      ['Wi-Fi sets the time by itself (internet time, NTP, India time).', 'Weather mood from the free Open-Meteo website, no key needed: rain → small umbrella ☂, hot → sweat drop 💧.', '“Good morning” greeting in the morning. Auto-sleep at night, 11 PM to 7 AM.', '“Pani piyo 💧” water reminder every 45 minutes. Tap to close it.', 'Tamagotchi pet: hunger goes up over time. Double-press to feed it. If you ignore it, it gets sad.'], 14],
+    ['m-timer', '⏱️', '2', 'Timer (Pomodoro)', 'Study for 25 minutes, then take a 5-minute break.', [
+      ['Turn', 'Set the minutes (starts at 25).'], ['Press', 'Start. Press again to pause.'], ['Time over', 'Beep! A 5-minute break starts.']],
+      ['The ring around the screen counts down.', 'It counts your finished sessions 🍅.'], 15],
+    ['m-volume', '🔊', '3', 'Volume knob (Bluetooth)', 'Control music and video on your PC or phone.', [
+      ['First time', 'Pair “Desk Buddy” in your Bluetooth settings.'], ['Turn', 'Volume up / down.'], ['Press', 'Play / pause.'], ['Double-press', 'Next track.'], ['Tap screen', 'Mute.']],
+      ['It works like a Bluetooth keyboard with media keys, so no app is needed.'], 16],
+    ['m-remote', '🚗', '4', 'Robot remote (ESP-NOW)', 'Drive the ESP32 4WD car. No Wi-Fi router needed.', [
+      ['Turn', 'Steer left / right.'], ['Tap screen', 'Go / stop.'], ['Press', 'Wheels straight.']],
+      ['If the car sends its distance reading back, the Dial shows it.', 'Car-side ESP32 code: coming soon.'], 17],
+    ['m-safe', '🔒', '5', 'Safe cracker game', 'Find the secret code: 3 numbers from 0 to 39.', [
+      ['Turn slowly', 'Listen: the beep gets higher near the right number, and the ring glows orange, then green.'], ['Press', 'Lock in that number.'], ['All 3 found', 'The safe opens 🎉']],
+      ['Tip: turn one click at a time near the fast clicks.'], 18],
+    ['m-reaction', '⚡', '6', 'Reaction game', 'Test how fast you are.', [
+      ['Tap', 'Start. The screen turns red: wait…'], ['Green!', 'Tap as fast as you can.'], ['Result', 'Your time in ms and your best score.']],
+      ['Tapping on red says “Too soon!”. Most people get 200–300 ms.'], 19],
+    ['m-counter', '🔢', '7', 'Counter', 'Count anything: pushups, chai cups, pages read.', [
+      ['Turn right', '+1 for each click.'], ['Turn left', '−1 for each click.'], ['Press', 'Reset to 0.']],
+      ['A small guard ignores quick accidental bumps, so you do not lose your count.', 'The count is saved, even after power-off.'], 20],
+    ['m-nfc', '🪪', 'Any', 'NFC magic cards', 'Hold a card over the screen to jump to an action. Works in any mode.', [
+      ['Study card', 'The Timer starts.'], ['Robot card', 'Opens the robot Remote.'], ['Party card', 'Love face + a tune 🎵'], ['Unknown card', 'Surprised face + the card’s ID.']],
+      ['To add a card: scan it, write down the ID it shows, put that ID in config.h, upload again.', 'Use blank 13.56 MHz cards (₹10–20 each). Metro cards also show an ID.'], 21]
+  ];
+  MODES.forEach(function (m) { STEP_MODE[m[7]] = m[0]; });
+  $('modeList').innerHTML = MODES.map(function (m) {
+    return '<article class="card modecard" id="' + m[0] + '"><div class="mhead"><div class="mnum" aria-hidden="true">' + m[1] + '</div><div class="grow"><div class="eyebrow" style="margin:0">' + (m[2] === 'All' || m[2] === 'Any' ? m[2] + ' modes' : 'Mode ' + m[2]) + '</div><h3>' + esc(m[3]) + '</h3></div><button class="btn sm" type="button" data-step="' + m[7] + '">Try it in 3D ▶</button></div>' +
+      '<p class="simple">' + esc(m[4]) + '</p>' +
+      '<div class="ctrl">' + m[5].map(function (c) { return '<div>' + esc(c[0]) + '</div><div>' + esc(c[1]) + '</div>'; }).join('') + '</div>' +
+      (m[6].length ? '<ul class="ticks">' + m[6].map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') + '</article>';
+  }).join('');
+
+  // ------------------------------------------------------------------ learn
+  var LESSONS = [
+    ['dial', 'The M5Stack Dial', 'A small round computer, ready to use. Screen, knob, NFC reader, clock and buzzer are already connected inside.', '<h4>Inside the box</h4><ul><li>ESP32-S3 brain (M5Stamp S3) with 8 MB flash</li><li>1.28" round touch screen, 240 × 240 pixels</li><li>Rotary encoder knob that is also a button</li><li>13.56 MHz NFC / RFID reader under the screen</li><li>RTC clock chip and a buzzer</li><li>USB-C, Grove Port A (red, I2C) and Port B</li></ul><p>Because all parts are inside, there is no breadboard and no wiring. Compare this with the 4WD robot, where you connected every wire yourself.</p>'],
+    ['esp32', 'ESP32-S3: the brain', 'A fast little computer chip with Wi-Fi and Bluetooth built in.', '<p>The ESP32-S3 has two cores running up to 240 MHz. That is about 15 times faster than the Arduino Uno in the robot. It also has 2.4 GHz Wi-Fi and Bluetooth LE, so the Dial can get the time, check the weather, act as a Bluetooth keyboard and talk to other ESP32 boards.</p><p>You program it in Arduino IDE, just like the Uno, after adding the M5Stack board pack.</p>'],
+    ['encoder', 'Rotary encoder: the knob', 'Every click of the knob sends a tiny signal. The Dial counts the clicks and knows which way you turned.', '<h4>How it knows left from right</h4><p>An encoder has two outputs, A and B. When you turn, both switch on and off, but one is a little ahead of the other. If A changes first, you turned one way. If B changes first, you turned the other way.</p><div class="svgbox" style="margin-top:8px"><svg viewBox="0 0 420 120" role="img" aria-label="Two square waves, A and B, a quarter step apart"><g font-family="JetBrains Mono" font-size="12" fill="#8b9cb8"><text x="8" y="40">A</text><text x="8" y="96">B</text><path d="M30 50h40v-26h40v26h40v-26h40v26h40v-26h40v26h40v-26h40" stroke="#38d7f5" stroke-width="3" fill="none"/><path d="M30 106h60v-26h40v26h40v-26h40v26h40v-26h40v26h40v-26h20" stroke="#ffb86b" stroke-width="3" fill="none"/><text x="250" y="16" fill="#38d7f5">A leads → turning right</text></g></svg></div><p>Push the whole face down and it presses a button. Our code checks how long you hold it: short = press, two quick ones = double-press, about 1 second = Mode menu.</p>'],
+    ['touch', 'Capacitive touch screen', 'Your finger holds a tiny electric charge. The screen feels where it changes, like a phone.', '<p>A grid of see-through wires sits on the glass. A touch chip measures the tiny charge on each crossing many times a second. Your finger changes it, so the chip knows where you touched. It works with a bare finger, not with gloves or a plastic pen.</p><p>The code sorts touches into a tap, a long hold, and many taps in a row.</p>'],
+    ['nfc', 'NFC: magic cards', 'NFC reads a card when you hold it very close, like a metro card or a payment card.', '<p>The reader’s copper coil makes a 13.56 MHz radio field. A card has its own coil and a tiny chip. The field powers the chip, so the card needs no battery. The chip answers with its ID number.</p><p>Our sketch compares that ID with the list in <code>config.h</code>. A match runs an action. It only reads the ID: it does not change the card.</p><p>Range is about 1–3 cm, so the card must be right on top of the screen.</p>'],
+    ['rtc', 'RTC: the clock chip', 'A tiny clock that keeps ticking on its own.', '<p>An RTC (real-time clock) counts seconds with its own small crystal. The ESP32 can also count time, but it forgets it when the power goes. Our code sets the clock from the internet (NTP) when Wi-Fi is available, then reads the time from it.</p>'],
+    ['ntp', 'Wi-Fi time (NTP)', 'The Dial asks a time server on the internet: “What time is it?”', '<p>NTP (Network Time Protocol) servers give the exact time to any device that asks. The Dial adds India’s offset (UTC + 5:30), so the clock shows Indian time (IST). No setting is needed after the first Wi-Fi connection.</p>'],
+    ['weather', 'Weather from the internet', 'The Dial asks a free weather website for the temperature and rain near you.', '<p>The sketch calls the free Open-Meteo service (no account, no key). It sends your latitude and longitude and gets back the temperature and the weather type. Rain → small umbrella on the buddy. Hot → a sweat drop.</p><p>This is called using an <b>API</b>: a web address that a program reads, instead of a person.</p>'],
+    ['ble', 'Bluetooth keyboard (BLE HID)', 'The Dial tells your PC: “I am a keyboard with volume keys.”', '<p>HID means Human Interface Device: keyboards, mice and game pads. Computers and phones already know how to use them, so no app is needed. The Dial sends “volume up”, “volume down”, “play/pause”, “next track” and “mute” key presses over Bluetooth Low Energy (BLE).</p>'],
+    ['espnow', 'ESP-NOW: talk without a router', 'Two ESP32 boards send short messages straight to each other.', '<p>Normal Wi-Fi needs a router in the middle. ESP-NOW does not. Each ESP32 has a unique MAC address, and one board sends small packets (up to 250 bytes) straight to the other’s address. It is fast and works in a field with no internet. That makes it good for a robot remote: the Dial sends steering and go/stop, the car can send back its distance.</p>']
+  ];
+  $('learnNav').innerHTML = LESSONS.map(function (l) { return '<button class="comp-chip" type="button" data-lesson="' + l[0] + '">' + esc(l[1]) + '</button>'; }).join('');
+  $('learnNav').addEventListener('click', function (e) { var b = e.target.closest('[data-lesson]'); if (b) $('lesson-' + b.dataset.lesson).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('learnList').innerHTML = LESSONS.map(function (l) { return '<article class="card" id="lesson-' + l[0] + '" style="scroll-margin-top:70px"><h3>' + esc(l[1]) + '</h3><p class="simple" style="margin:10px 0">' + esc(l[2]) + '</p><div class="deep">' + l[3] + '</div></article>'; }).join('');
+
+  // ------------------------------------------------------------------ code (fetched from desk-buddy/)
+  var FILES = [['desk-buddy/desk_buddy_dial.ino', 'desk_buddy_dial.ino', 'The main sketch: faces, modes, menu, Wi-Fi, NFC.'], ['desk-buddy/config.h', 'config.h', 'Your settings: Wi-Fi, weather location, reminders, Pomodoro minutes, knob direction, NFC card IDs. Change this file.']];
+  var codeLoaded = false, codeText = {};
+  function hl(code) {
+    return esc(code).replace(/(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|(&quot;(?:[^&\n]|&(?!quot;))*?&quot;|'(?:\\.|[^'\\\n])')|(^[ \t]*#[a-z]+)|\b(const|byte|int|bool|unsigned|long|float|double|void|if|else|switch|case|break|return|enum|while|for|do|true|false|char|static|struct|uint8_t|uint16_t|uint32_t|int8_t|int16_t|int32_t|uint64_t|size_t|String|auto|default|continue|nullptr|NULL|class|constexpr)\b|\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?)\b/gm, function (m, c, s, p, k, n) {
+      return c ? '<span class="tok-c">' + c + '</span>' : s ? '<span class="tok-s">' + s + '</span>' : p ? '<span class="tok-k">' + p + '</span>' : k ? '<span class="tok-k">' + k + '</span>' : '<span class="tok-n">' + n + '</span>';
+    });
+  }
+  $('codeFiles').innerHTML = FILES.map(function (f, i) {
+    return '<div class="card codefile"><div class="fhead"><div class="grow"><h3>' + esc(f[1]) + '</h3><p class="note">' + esc(f[2]) + '</p></div><span class="chip" id="cfLines' + i + '">…</span><button class="btn sm" type="button" data-copy="' + i + '">Copy</button><a class="btn sm ghost" href="' + f[0] + '" download="' + f[1] + '">Download</a></div><pre id="cfPre' + i + '">Loading…</pre></div>';
+  }).join('');
+  function loadCode() {
+    if (codeLoaded) return; codeLoaded = true;
+    FILES.forEach(function (f, i) {
+      var pre = $('cfPre' + i);
+      var p = window.fetch ? fetch(f[0], { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }) : Promise.reject(new Error('no fetch'));
+      p.then(function (t) {
+        codeText[i] = t; pre.innerHTML = hl(t); $('cfLines' + i).textContent = t.split('\n').length + ' lines';
+      }).catch(function (err) {
+        $('cfLines' + i).textContent = 'not loaded';
+        var file = location.protocol === 'file:';
+        pre.innerHTML = '<div class="warnbox" style="font-family:var(--body);white-space:normal">' +
+          (file ? 'This page was opened as a file, so the browser blocks reading <code>' + esc(f[0]) + '</code>. Serve the folder (for example <code>python -m http.server</code>) and open it through <code>http://localhost</code>, or open the file directly from the <code>desk-buddy</code> folder.'
+                : 'Could not load <code>' + esc(f[0]) + '</code> (' + esc(err.message) + '). Try the Download button, or reload the page.') + '</div>';
+        codeLoaded = false;   // try again next time the Code page opens
+      });
+    });
+  }
+  function copyText(btn, text) { var o = btn.textContent; function sel() { btn.textContent = 'Select and copy manually'; setTimeout(function () { btn.textContent = o; }, 2000); } try { navigator.clipboard.writeText(text).then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = o; }, 1600); }, sel); } catch (e) { sel(); } }
+  $('codeFiles').addEventListener('click', function (e) { var b = e.target.closest('[data-copy]'); if (!b) return; var t = codeText[+b.dataset.copy]; if (t) copyText(b, t); else { b.textContent = 'Not loaded yet'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); } });
+
+  // ------------------------------------------------------------------ quick revision
+  var QA = [
+    ['What is the M5Stack Dial?', 'A ready-made round controller with an ESP32-S3, a 1.28" round touch screen, a rotary encoder knob that is also a button, an NFC reader, an RTC clock chip, a buzzer and Grove ports.'],
+    ['Why is no wiring needed for the Desk Buddy?', 'All the parts are already connected inside the Dial. Only a USB-C data cable is needed, for power and to upload the code.'],
+    ['What is the difference between a charge-only cable and a data cable?', 'A charge-only cable has only the power wires. A data cable also has the data wires, which the computer needs to see the Dial and upload code.'],
+    ['How does a rotary encoder tell left from right?', 'It has two outputs, A and B, that switch a little apart. Which one changes first tells the direction. Each click is one step.'],
+    ['How does a capacitive touch screen feel your finger?', 'Your finger changes the tiny electric charge in a grid of see-through wires on the glass. The touch chip measures where it changed.'],
+    ['What does NFC stand for, and what does the Dial read from a card?', 'Near Field Communication. The Dial reads the card’s ID number, then looks it up in config.h to choose an action.'],
+    ['Why does an NFC card not need a battery?', 'The reader’s 13.56 MHz field powers the card’s tiny chip through its coil when it is very close.'],
+    ['What is an RTC?', 'A real-time clock chip. It keeps counting time with its own crystal. Our code sets it from the internet using NTP.'],
+    ['What is NTP?', 'Network Time Protocol. The Dial asks an internet time server for the exact time, then adds 5:30 for India time.'],
+    ['Where does the weather come from?', 'The free Open-Meteo API. The Dial sends a location and gets back the temperature and weather type. No key is needed.'],
+    ['How does the Volume mode work without an app?', 'The Dial acts as a Bluetooth keyboard with media keys (BLE HID). PCs and phones already understand those keys.'],
+    ['What is ESP-NOW and why use it for a robot remote?', 'A way for two ESP32 boards to send short messages straight to each other, with no router. It is fast and works anywhere.'],
+    ['How do you open the Mode menu?', 'Hold the knob down for about 1 second. Turn to choose a mode, press to open. Hold again to go back.'],
+    ['Which board and partition settings are used to upload?', 'Board M5Dial (m5stack:esp32:m5stack_dial), Flash Size 8MB, Partition “8M with spiffs (3MB APP/1.5MB SPIFFS)”.'],
+    ['Why must your Wi-Fi be 2.4 GHz?', 'The ESP32-S3 radio only works on 2.4 GHz. It cannot join a 5 GHz network.'],
+    ['How do you add a new NFC card?', 'Scan it. The buddy shows a surprised face and the card ID. Copy the ID into config.h with its action, then upload again.']
+  ];
+  $('qaList').innerHTML = QA.map(function (q, i) { return '<div class="qa" id="qa' + i + '"><button type="button" aria-expanded="false"><span class="q-ico">Q' + (i + 1) + '</span>' + esc(q[0]) + '</button><div class="a">' + esc(q[1]) + '</div></div>'; }).join('');
+  $('qaList').addEventListener('click', function (e) { var b = e.target.closest('.qa button'); if (b) { var o = b.parentNode.classList.toggle('open'); b.setAttribute('aria-expanded', o); } });
+  $('openAll').addEventListener('click', function () { document.querySelectorAll('.qa').forEach(function (q) { q.classList.add('open'); }); });
+  $('closeAll').addEventListener('click', function () { document.querySelectorAll('.qa').forEach(function (q) { q.classList.remove('open'); }); });
+
+  // ------------------------------------------------------------------ dashboard
+  var MODULES = [
+    ['build', '3D Tutorial', 'Look inside the Dial and try every mode with a live screen.', '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>'],
+    ['setup', 'Setup', 'Cable, Arduino IDE, board pack, library and upload settings.', '<path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0z"/><path d="M12 16v5"/>'],
+    ['modes', 'Modes Guide', 'Every mode, every control, with tips.', '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.4"/><circle cx="16" cy="17.5" r="1.4"/><circle cx="8" cy="17.5" r="1.4"/>'],
+    ['learn', 'Learn the Parts', 'Encoder, touch, NFC, RTC, Bluetooth, ESP-NOW, weather API.', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'],
+    ['code', 'Code', 'The sketch and config.h, to copy or download.', '<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>'],
+    ['exam', 'Quick Revision', 'Questions with answers.', '<path d="M4 5h16v12H8l-4 3z"/>']
+  ];
+  $('dashModules').innerHTML = MODULES.map(function (m) { return '<div class="card module" tabindex="0" role="button" data-go="' + m[0] + '"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' + m[3] + '</svg></div><h3>' + m[1] + '</h3><p class="note">' + m[2] + '</p></div>'; }).join('');
+  $('dashModes').innerHTML = MODES.slice(1).map(function (m) { return '<div class="card minimode" tabindex="0" role="button" data-go="modes" data-anchor="' + m[0] + '"><span class="em" aria-hidden="true">' + m[1] + '</span><h3>' + esc(m[3]) + '</h3><p class="note">' + esc(m[4]) + '</p></div>'; }).join('');
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) show(e.target.dataset.go, e.target.dataset.anchor); });
+  $('dashContinue').addEventListener('click', function () { openStep(doneCount() ? nextOpen() : (state.cur || 0)); });
+  function updateMini() {
+    var d = doneCount();
+    $('miniProgText').textContent = $('moreProgText').textContent = d + ' / ' + N + ' steps'; $('miniProgBar').style.width = $('moreProgBar').style.width = (100 * d / N) + '%';
+    $('topProg').textContent = d + ' / ' + N;
+  }
+  function renderDashboard() {
+    var d = doneCount(), nx = nextOpen();
+    $('ringArc').setAttribute('stroke-dashoffset', String(314.16 * (1 - d / N))); $('ringPct').textContent = Math.round(100 * d / N) + '%';
+    $('dashCount').textContent = d + ' / ' + N + ' steps completed';
+    $('dashCurrent').textContent = d === N ? 'All steps done. Have fun with your buddy!' : 'Next: step ' + nx + ' · ' + STEPS[nx - 1].title;
+    $('dashContinueText').textContent = d ? 'Continue in 3D' : 'Start in 3D';
+    $('kpiChecks').textContent = CHECKS.filter(function (c) { return state.checks[c[0]]; }).length + '/' + CHECKS.length;
+    updateMini();
+  }
+
+  // ------------------------------------------------------------------ progress
+  var CHECKS = [
+    ['upload', 'The sketch uploaded with no errors'], ['eyes', 'The eyes blink on my real Dial'], ['wifi', 'Wi-Fi time is correct (IST)'], ['menu', 'I opened the Mode menu (hold the knob)'],
+    ['timer', 'I finished one Pomodoro session'], ['volume', 'My PC or phone volume changed with the knob'], ['safe', 'I cracked the safe'], ['reaction', 'I beat 300 ms in the Reaction game'],
+    ['counter', 'I counted something with the Counter'], ['nfc', 'I scanned an NFC card and put its ID in config.h']
+  ];
+  function renderProgress() {
+    var d = doneCount();
+    $('progTitle').textContent = d + ' / ' + N + ' steps completed';
+    $('checkList').innerHTML = CHECKS.map(function (c) { return '<label class="checkrow"><input type="checkbox" data-check="' + c[0] + '"' + (state.checks[c[0]] ? ' checked' : '') + '><span>' + esc(c[1]) + '</span></label>'; }).join('');
+    var phases = []; STEPS.forEach(function (s) { if (phases.indexOf(s.phase) < 0) phases.push(s.phase); });
+    $('progSteps').innerHTML = phases.map(function (ph) {
+      return '<div class="phase-block"><h3>' + esc(ph) + '</h3><div class="steplist">' + STEPS.filter(function (s) { return s.phase === ph; }).map(function (s) {
+        var done = !!state.done[s.id];
+        return '<div class="stepitem' + (done ? ' done' : '') + (s.n === state.cur ? ' now' : '') + '" role="button" tabindex="0" data-step="' + s.n + '"><span class="num">' + (done ? '✓' : s.n) + '</span><span><span class="t">' + esc(s.title) + '</span><br><span class="s">' + esc(s.doNow) + '</span></span><span class="chip' + (done ? ' ok' : '') + '">' + (done ? 'done' : 'open') + '</span></div>';
+      }).join('') + '</div></div>';
+    }).join('');
+    updateMini();
+  }
+  $('checkList').addEventListener('change', function (e) { var k = e.target.dataset.check; if (!k) return; state.checks[k] = e.target.checked; save(); });
+  $('progSteps').addEventListener('keydown', function (e) { var s = e.target.closest('[data-step]'); if (s && e.key === 'Enter') openStep(+s.dataset.step); });
+  $('resetProg').addEventListener('click', function () { $('resetModal').classList.add('on'); $('resetNo').focus(); });
+  $('resetNo').addEventListener('click', function () { $('resetModal').classList.remove('on'); });
+  $('resetModal').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('on'); });
+  $('resetYes').addEventListener('click', function () {
+    state = { done: {}, cur: 0, checks: {} }; save(); $('resetModal').classList.remove('on');
+    if (engine) engine.go(0); renderProgress();
+  });
+
+  // ------------------------------------------------------------------ start
+  updateMini();
+  var h = (location.hash || '').replace('#', '');
+  show(VIEWS.indexOf(h) >= 0 ? h : 'dashboard');
+  window.__deskBuddy = { show: show, openStep: openStep, engine: function () { return engine; }, state: function () { return state; } };
+})();
+</script>
+</body>
+</html>
