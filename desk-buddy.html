@@ -416,7 +416,15 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
 .minimode .em { font-size: 1.6rem; }
 .projswitch { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .url { font-family: var(--mono); font-size: .82rem; word-break: break-all; color: var(--cyan); }
+#view-car3d { max-width: none; padding: 0; }
+.sheet .sheet-sec { font: 600 .68rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 12px 12px 2px; }
+.part-badge { font: 700 .62rem var(--mono); letter-spacing: .06em; color: #1a1200; background: var(--warn); border-radius: 5px; padding: 1px 5px; margin-left: auto; }
+.app.collapsed .nav .part-badge { display: none; }
 @media (max-width: 760px), (max-height: 520px) and (pointer: coarse) {
+  body.v-car3d .topbar { display: none; }
+  body.v-car3d .main { padding-bottom: 0; }
+  #cPrevBtn .lbl { display: none; }
+  .stepnav #cNextBtn { justify-content: center; white-space: nowrap; }
   .sheet a.navlink { min-height: 58px; padding: 10px 12px; border-radius: 12px; color: var(--ink); font-weight: 600; gap: 14px; }
   .sheet a.navlink svg { width: 22px; height: 22px; flex: none; color: var(--cyan); }
   .tabbar { grid-template-columns: repeat(6, 1fr); }
@@ -444,6 +452,12 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       <div class="sec">Learn</div>
       <button data-view="learn" data-tip="How each part works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn the Parts</span></button>
       <button data-view="code" data-tip="The sketch and config.h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Code</span></button>
+      <div class="sec">Part 2 · Car link</div>
+      <button data-view="car" data-tip="Drive the 4WD car with the Dial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="9" width="16" height="8" rx="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M9 5a5 5 0 0 1 6 0M7 3a8 8 0 0 1 10 0"/></svg><span>Car Link</span><span class="part-badge">2</span></button>
+      <button data-view="car3d" data-tip="The car and the Dial in 3D"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>Car 3D Tutorial</span></button>
+      <button data-view="carwiring" data-tip="ESP32 pin table and diagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Car Wiring</span></button>
+      <button data-view="carcode" data-tip="smart_car_esp32.ino"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Car Code</span></button>
+      <button data-view="carfix" data-tip="When the car does not obey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg><span>Troubleshooting</span></button>
       <div class="sec">Present</div>
       <button data-view="exam" data-tip="Questions and answers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision</span></button>
       <button data-view="progress" data-tip="Your progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress</span></button>
@@ -504,14 +518,13 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
           <div style="margin-top:8px">
             <div class="rm"><div class="ico">💡</div><div><b>Smart-switch relays over ESP-NOW</b><p class="note">Turn a desk lamp or fan on and off from the knob. A second ESP32 with a relay board listens for the Dial.</p></div></div>
             <div class="rm"><div class="ico">🔔</div><div><b>PC notifications</b><p class="note">A small program on your computer sends alerts (new mail, meeting soon) and the buddy shows them.</p></div></div>
-            <div class="rm"><div class="ico">🚗</div><div><b>Car-side receiver code</b><p class="note">The ESP32 code for the robot car, so Mode 4 can really drive it and show its distance.</p></div></div>
           </div>
         </div>
         <div class="card">
           <div class="eyebrow">Other project</div>
           <h3>4WD obstacle-avoiding robot</h3>
-          <p class="note" style="margin:8px 0 14px">Project 1: an Arduino car with ultrasonic eyes on a servo neck. Build it in 3D, wire by wire. Later the Desk Buddy will be its remote.</p>
-          <a class="btn" href="index.html">Open the 4WD robot tutorial →</a>
+          <p class="note" style="margin:8px 0 14px">Project 1: an Arduino car with ultrasonic eyes on a servo neck. Build it in 3D, wire by wire. In Part 2 the Desk Buddy becomes its remote.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" data-go="car">Part 2: drive it with the Dial →</button><a class="btn" href="index.html">4WD robot tutorial</a></div>
         </div>
       </div>
     </section>
@@ -688,7 +701,10 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
     <!-- ===================== QUICK REVISION ===================== -->
     <section class="view" id="view-exam">
       <div class="view-head"><div><div class="eyebrow">Quick Revision</div><h1>Questions about the Desk Buddy</h1><p class="lede">Read the question, answer in your head, then tap to check.</p></div><div style="display:flex;gap:8px"><button class="btn sm" id="openAll" type="button">Show all answers</button><button class="btn sm" id="closeAll" type="button">Hide all</button></div></div>
+      <h2 style="margin:0 0 12px">Part 1: Desk Buddy</h2>
       <div class="grid" id="qaList"></div>
+      <h2 style="margin:28px 0 12px">Part 2: Car link</h2>
+      <div class="grid" id="qaList2"></div>
     </section>
 
     <!-- ===================== PROGRESS ===================== -->
@@ -698,7 +714,207 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       <div class="card" style="margin-bottom:20px"><h3>On your real Dial</h3><p class="note" style="margin:4px 0 8px">Tick each one when it works on your own Dial.</p><div id="checkList"></div></div>
       <h3 style="margin-bottom:10px">3D steps</h3>
       <div id="progSteps"></div>
+      <div id="part2Progress" style="scroll-margin-top:70px;margin-top:28px">
+        <h2 id="progTitle2" style="margin-bottom:12px">Part 2</h2>
+        <div class="card" style="margin-bottom:20px"><h3>On your real car</h3><p class="note" style="margin:4px 0 8px">Tick each one when it works on your own ESP32 car.</p><div id="checkList2"></div></div>
+        <h3 style="margin-bottom:10px">Part 2 · 3D steps</h3>
+        <div id="progSteps2"></div>
+      </div>
     </section>
+
+    <!-- ===================== PART 2 · CAR LINK: OVERVIEW ===================== -->
+    <section class="view" id="view-car">
+      <div class="hero">
+        <div class="card glow hero-main">
+          <div class="eyebrow">Part 2 · Car link · ESP32 + ESP-NOW</div>
+          <h1>Drive the car with the Dial</h1>
+          <p class="lede">Take the 4WD robot from Project 1. Swap its Arduino Uno for an ESP32. Now the Desk Buddy’s Remote mode drives it by radio: turn to steer, tap to go. The car sends back how far away things are, and it stops by itself near walls.</p>
+          <div class="hero-actions">
+            <button class="btn primary" type="button" id="carContinue">▶ <span id="carContinueText">Start Part 2 in 3D</span></button>
+            <button class="btn" type="button" data-go="carwiring">Wiring</button>
+            <button class="btn" type="button" data-go="carcode">Car code</button>
+            <button class="btn ghost" type="button" data-go="carfix">Troubleshooting</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="eyebrow">Part 2 progress</div>
+          <h2 id="carCount">0 / 0 steps completed</h2>
+          <p class="note" id="carNext" style="margin-top:6px">Next: step 1</p>
+          <div class="mini-prog" style="margin-top:12px;padding:0;background:none"><div class="bar"><i id="carBar"></i></div></div>
+          <div class="kpis">
+            <div class="kpi"><b>1</b><span>board swapped</span></div>
+            <div class="kpi"><b>16</b><span>wires to check</span></div>
+            <div class="kpi"><b>0.6 s</b><span>failsafe</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h3>What stays the same</h3><ul class="ticks" style="margin-top:8px"><li>Chassis, 4 TT motors and wheels</li><li>L298N motor driver, ENA/ENB jumper caps still off</li><li>Motor wires on OUT1–OUT4</li><li>2 × 18650 battery box, switch, battery wires</li><li>HC-SR04 Eyes on the MG90S servo Neck</li></ul></div>
+        <div class="card"><h3>What is new</h3><ul class="ticks" style="margin-top:8px"><li>ESP32 DevKit instead of the Arduino Uno</li><li>New pin numbers (25, 26, 27, 16, 17, 33, 18, 19, 23)</li><li>Two resistors for the Echo wire (1 kΩ + 2 kΩ)</li><li>L298N 5V → ESP32 VIN, and a common ground</li><li>New sketch: <code>smart_car_esp32.ino</code></li></ul></div>
+      </div>
+
+      <div class="card" style="padding:0;margin-top:16px">
+        <div style="padding:16px 16px 8px"><h3>What you need (extra)</h3><p class="note">Rough Indian online prices. They change often.</p></div>
+        <div class="tbl" style="border:0;border-top:1px solid var(--line);border-radius:0">
+          <table>
+            <thead><tr><th>Item</th><th>Why</th><th>Price</th></tr></thead>
+            <tbody>
+              <tr><td><b>ESP32 DevKit</b> (30-pin, ESP32-WROOM-32)</td><td>The new brain. Has Wi-Fi radio for ESP-NOW.</td><td>₹350–550</td></tr>
+              <tr><td><b>1 kΩ and 2 kΩ resistors</b> (or 3 × 1 kΩ)</td><td>Voltage divider: drops the 5 V Echo to about 3.3 V.</td><td>₹1–5 each, ₹50 for a pack</td></tr>
+              <tr><td><b>Jumper wires</b> (male-female, male-male)</td><td>New pins on the ESP32.</td><td>₹60–120</td></tr>
+              <tr><td><b>Micro-USB or USB-C data cable</b> (to match your ESP32)</td><td>To upload the car sketch.</td><td>₹100–250</td></tr>
+              <tr><td><b>5 V 3 A buck converter</b> <span class="chip">optional</span></td><td>Only if the ESP32 restarts when the motors start.</td><td>₹80–250</td></tr>
+              <tr><td><b>HC-SR04P</b> <span class="chip">optional</span></td><td>3.3 V version of the sensor. Then no divider is needed.</td><td>₹80–150</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 style="margin:28px 0 12px">How the link works</h2>
+      <div class="grid g2" id="carLearn"></div>
+    </section>
+
+    <!-- ===================== PART 2: 3D ===================== -->
+    <section class="view" id="view-car3d">
+      <div class="stage" id="cStage">
+        <canvas id="cScene" aria-label="Interactive 3D model of the ESP32 car and the Dial"></canvas>
+        <div class="overlay flash" id="cFlash"></div>
+        <div class="overlay loading3d" id="cLoading"><div><div class="spinner"></div>Loading the car and the Dial…</div></div>
+        <div class="overlay tools" id="cTools">
+          <button class="tool" id="cFsBtn" type="button" data-tip-down data-tip="Fullscreen 3D (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="cFsText">Fullscreen</span></button>
+          <button class="tool" id="cResetBtn" type="button" data-tip-down data-tip="Back to the view for this step (R)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset view</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="tool sim" data-csim="left" type="button" data-tip-down data-tip="Turn the Dial knob left: steer left (A)">◀ Steer</button>
+          <button class="tool sim" data-csim="right" type="button" data-tip-down data-tip="Turn the Dial knob right: steer right (D)">Steer ▶</button>
+          <button class="tool sim" data-csim="tap" type="button" data-tip-down data-tip="Tap the Dial screen: GO / STOP (T)">GO / STOP</button>
+          <button class="tool sim" data-csim="press" type="button" data-tip-down data-tip="Press the knob: wheels straight (S)">Straighten</button>
+          <button class="tool sim" data-csim="power" type="button" data-tip-down data-tip="Switch the Dial off or on (failsafe test)">Dial on/off</button>
+          <button class="tool sim" data-csim="reset" type="button" data-tip-down data-tip="Put the car back in the middle">Reset car</button>
+        </div>
+        <div class="overlay status">
+          <div class="stat" id="cStepStat"><span class="led"></span><span id="cStepStatText">Start</span></div>
+          <div class="stat" id="cLinkStat"><span class="led"></span><span id="cLinkStatText">Link: …</span></div>
+          <div class="stat" style="font-weight:500;color:var(--muted)"><span class="kbd">A</span><span class="kbd">D</span> steer · <span class="kbd">T</span> go/stop · <span class="kbd">S</span> straight · <span class="kbd">←</span><span class="kbd">→</span> steps</div>
+        </div>
+        <div class="overlay stepcard" id="cStepcard">
+          <button class="sheet-handle" id="cSheetHandle" type="button" aria-label="Show more or less of this step (swipe up or down)"><i></i></button>
+          <div class="top"><span class="phase" id="cPhase">Ready</span><span class="right"><span class="chip" id="cNum">0 / 0</span><button class="icobtn" id="cCardMin" type="button" aria-label="Minimise the step card" data-tip="Minimise (H)">−</button></span></div>
+          <h2 id="cTitle">Drive the car with the Dial</h2>
+          <p class="kid" id="cKid"></p>
+          <div class="donow" id="cDo"><b>Do this now</b><span id="cDoText">Press Start.</span></div>
+          <div class="collapsible">
+            <div class="wirechips" id="cWires"></div>
+            <div class="badbox" id="cWarn" style="display:none"></div>
+            <details class="grown"><summary>For grown-ups: exact details</summary><div id="cGrown" style="margin-top:6px"></div></details>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button class="btn sm" id="cLearnBtn" type="button">Learn this</button>
+              <button class="btn sm" type="button" data-go="carwiring">Wiring table</button>
+              <button class="btn sm ghost" id="cMinBtn" type="button">Hide details</button>
+            </div>
+          </div>
+          <div class="stepnav">
+            <button class="btn" id="cPrevBtn" type="button" data-tip="Previous step (←)" aria-label="Previous step">◀<span class="lbl"> Previous</span></button>
+            <button class="btn" id="cDoneBtn" type="button" data-tip="Mark this step complete">✓ Mark complete</button>
+            <span class="grow"></span>
+            <button class="btn primary" id="cNextBtn" type="button" data-tip="Next step (→). Marks this one done.">Next ▶</button>
+          </div>
+        </div>
+        <div class="overlay restore" id="cRestoreWrap"><button id="cCardRestore" type="button" aria-label="Show the step card"><span>▴</span><span>Show guide</span><span class="n" id="cRestoreNum"></span></button></div>
+        <div class="overlay stepdots" id="cDots"></div>
+      </div>
+    </section>
+
+    <!-- ===================== PART 2: WIRING ===================== -->
+    <section class="view" id="view-carwiring">
+      <div class="view-head"><div><div class="eyebrow">Part 2 · Wiring</div><h1>ESP32 car: every connection</h1><p class="lede">Same wire colours as Part 1. Red is + power, black is GND. Pin numbers are the GPIO numbers printed on the ESP32 board (D25 = GPIO 25).</p></div><button class="btn" type="button" data-cstep="4">Open in 3D</button></div>
+      <div class="badbox" style="margin-bottom:16px"><b>Echo needs the divider.</b> The HC-SR04 Echo pin gives 5 V. The ESP32 pins take 3.3 V. Without the 1 kΩ + 2 kΩ divider, the 5 V echo can damage the ESP32.</div>
+      <div class="card"><h3>Wiring diagram</h3><p class="note phone-only" style="margin-top:4px">Swipe sideways to see the whole diagram.</p><p class="note" style="margin:4px 0 12px">Every ⏚ symbol is GND, and all GNDs are joined: battery −, L298N GND and ESP32 GND.</p>
+        <div class="diagram"><svg viewBox="0 0 900 520" role="img" aria-label="Wiring diagram: ESP32 in the middle, L298N on the left, servo and ultrasonic sensor on the right, battery at the bottom left">
+          <defs><g id="gnd"><path d="M-9 0h18M-6 5h12M-3 10h6" stroke="#8b9cb8" stroke-width="2"/></g></defs>
+          <g font-family="JetBrains Mono" font-size="12" fill="#e3ecf8">
+            <rect x="40" y="100" width="180" height="250" rx="8" fill="#3a1416" stroke="#c0262d" stroke-width="2"/><text x="130" y="128" text-anchor="middle" font-size="15" fill="#fca5a5">L298N</text>
+            <g text-anchor="end" fill="#fecaca"><text x="212" y="154">ENB</text><text x="212" y="184">ENA</text><text x="212" y="214">IN1</text><text x="212" y="244">IN2</text><text x="212" y="274">IN3</text><text x="212" y="304">IN4</text></g>
+            <g text-anchor="middle" fill="#fecaca"><text x="70" y="340">12V</text><text x="130" y="340">GND</text><text x="180" y="340">5V</text></g>
+            <text x="60" y="230" fill="#8b9cb8" font-size="11">OUT1–4 →</text><text x="60" y="246" fill="#8b9cb8" font-size="11">motors</text>
+            <rect x="380" y="90" width="140" height="340" rx="8" fill="#14161b" stroke="#38d7f5" stroke-width="2"/><text x="450" y="118" text-anchor="middle" font-size="15" fill="#38d7f5">ESP32</text><text x="450" y="134" text-anchor="middle" font-size="11" fill="#8b9cb8">DevKit</text>
+            <g fill="#cfe2ff"><text x="388" y="154">33</text><text x="388" y="184">25</text><text x="388" y="214">26</text><text x="388" y="244">27</text><text x="388" y="374">GND</text><text x="388" y="404">VIN</text></g>
+            <g fill="#cfe2ff" text-anchor="end"><text x="512" y="154">23</text><text x="512" y="214">19</text><text x="512" y="244">18</text><text x="512" y="294">17</text><text x="512" y="324">16</text><text x="512" y="374">GND</text></g>
+            <g fill="none" stroke-width="3.5" stroke-linejoin="round">
+              <path d="M380 150H220" stroke="#eef2f7"/><path d="M380 180H220" stroke="#ff8c1a"/><path d="M380 210H220" stroke="#ffd21f"/><path d="M380 240H220" stroke="#2fbf5b"/>
+              <path d="M520 290H545V463H265V300H220" stroke="#a855f7"/><path d="M520 320H560V478H280V270H220" stroke="#3b82f6"/>
+              <path d="M180 350V400H380" stroke="#e5383b"/>
+              <path d="M130 350V500H600V370H520" stroke="#6b7280"/>
+              <path d="M40 450V420M40 392V380H70V350" stroke="#e5383b"/><path d="M90 450V430H130" stroke="#6b7280"/>
+              <path d="M690 80V150H520" stroke="#ff8c1a"/>
+              <path d="M780 170V210H700M650 210H520" stroke="#ff7eb6"/>
+              <path d="M600 210V218M600 240V246" stroke="#ff7eb6"/>
+              <path d="M820 170V265H540V240H520" stroke="#5ad8ff"/>
+              <path d="M740 170V182M650 80V92" stroke="#8b9cb8"/>
+              <path d="M860 170V180M740 80V92" stroke="#e5383b"/>
+            </g>
+            <circle cx="130" cy="430" r="5" fill="#6b7280"/><circle cx="600" cy="210" r="5" fill="#ff7eb6"/>
+            <rect x="650" y="202" width="50" height="16" rx="3" fill="#e7d3a8"/><text x="675" y="196" text-anchor="middle" fill="#ffd166">1 kΩ</text>
+            <rect x="592" y="218" width="16" height="22" rx="3" fill="#e7d3a8"/><text x="570" y="234" text-anchor="end" fill="#ffd166">2 kΩ</text>
+            <use href="#gnd" x="600" y="248"/><use href="#gnd" x="740" y="184"/><use href="#gnd" x="650" y="94"/>
+            <rect x="620" y="30" width="140" height="50" rx="6" fill="#16304f" stroke="#3b82f6" stroke-width="2"/><text x="690" y="52" text-anchor="middle">MG90S servo</text><text x="690" y="70" text-anchor="middle" font-size="10" fill="#8b9cb8">brown · orange · red</text>
+            <rect x="710" y="110" width="180" height="60" rx="6" fill="#16304f" stroke="#3b82f6" stroke-width="2"/><text x="780" y="130" text-anchor="middle">HC-SR04 (back)</text>
+            <g text-anchor="middle" font-size="10" fill="#cfe2ff"><text x="740" y="160">GND</text><text x="780" y="160">Echo</text><text x="820" y="160">Trig</text><text x="860" y="160">VCC</text></g>
+            <text x="884" y="148" text-anchor="end" fill="#fca5a5" font-size="10">VCC→L298N 5V</text><text x="752" y="104" text-anchor="start" fill="#fca5a5" font-size="11">red → 5V</text>
+            <rect x="20" y="450" width="100" height="44" rx="6" fill="#15171b" stroke="#3b82f6" stroke-width="2"/><text x="70" y="477" text-anchor="middle" font-size="11">2 × 18650</text>
+            <text x="30" y="446" font-size="11" fill="#fca5a5">+</text><text x="96" y="446" font-size="11" fill="#cbd5e1">−</text>
+            <rect x="30" y="392" width="20" height="28" rx="3" fill="none" stroke="#e5383b" stroke-width="2"/><text x="56" y="410" font-size="11" fill="#8b9cb8">switch</text>
+            <text x="300" y="516" text-anchor="middle" font-size="11" fill="#8b9cb8">common ground: battery −, L298N GND, ESP32 GND</text>
+            <text x="300" y="394" text-anchor="middle" font-size="11" fill="#fca5a5">5V → VIN</text>
+          </g>
+        </svg></div>
+      </div>
+      <div class="card" style="padding:0;margin-top:16px">
+        <div style="padding:16px 16px 8px"><h3>Pin table</h3><p class="note">Check each wire with your finger, one row at a time.</p></div>
+        <div class="tbl" style="border:0;border-top:1px solid var(--line);border-radius:0"><table>
+          <thead><tr><th>From</th><th>To</th><th>Wire</th><th>Why</th></tr></thead>
+          <tbody id="carPinRows"></tbody>
+        </table></div>
+      </div>
+      <div class="warnbox" style="margin-top:16px">Never power the ESP32 from USB and from the L298N 5V at the same time without the common ground. Simplest: unplug the USB before you switch the battery on, or keep the wheels in the air while you test on USB.</div>
+    </section>
+
+    <!-- ===================== PART 2: CODE ===================== -->
+    <section class="view" id="view-carcode">
+      <div class="view-head"><div><div class="eyebrow">Part 2 · Code · smart_car_esp32.ino</div><h1>The car sketch</h1><p class="lede">One file for the ESP32 on the car. The Dial side is the Remote mode that is already in <code>desk_buddy_dial.ino</code>.</p></div></div>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card">
+          <h3>Upload it</h3>
+          <ol class="steps-ol" style="margin-top:10px">
+            <li>Boards Manager: install <b>esp32 by Espressif Systems</b>, version <b>3.x</b>.</li>
+            <li>Make a folder <code>smart_car_esp32</code> and put <code>smart_car_esp32.ino</code> inside.</li>
+            <li>Battery switch <b>OFF</b>. USB cable to the ESP32.</li>
+            <li>Tools → Board: <b>ESP32 Dev Module</b>. Pick the port. Upload.</li>
+            <li>Upload fails? Set Upload Speed to <b>115200</b>, or hold <b>BOOT</b> while it says “Connecting…”.</li>
+            <li>Serial Monitor at <b>115200</b>: it prints “searching ch …” until it hears the Dial.</li>
+          </ol>
+        </div>
+        <div class="card" style="padding:0">
+          <div style="padding:16px 16px 8px"><h3>Settings you may change</h3><p class="note">At the top of the sketch (and one in the Dial’s config.h).</p></div>
+          <div class="tbl" style="border:0;border-top:1px solid var(--line);border-radius:0"><table><tbody>
+            <tr><th>LEFT_REVERSED<br>RIGHT_REVERSED</th><td>Flip <code>true</code>/<code>false</code> if one side spins backwards in the wheels-in-the-air test. Left starts as <code>true</code>, like Part 1.</td></tr>
+            <tr><th>SERVO_CENTER</th><td>90 = Eyes straight. Crooked? Try 85 or 95.</td></tr>
+            <tr><th>AUTO_WHEN_ALONE</th><td><code>false</code> = wait for the Dial. <code>true</code> = drive by itself and avoid obstacles (like Part 1) when no Dial is heard.</td></tr>
+            <tr><th>STOP_CM / SLOW_CM</th><td>Brake below 22 cm, slow below 45 cm.</td></tr>
+            <tr><th>REMOTE_SPEED <span class="chip">Dial</span></th><td>In the Dial’s config.h. Speed in %, default 70.</td></tr>
+            <tr><th>KNOB_REVERSE <span class="chip">Dial</span></th><td>In the Dial’s config.h. Set to 1 if steering is the wrong way round.</td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+      <div id="carCodeFiles"></div>
+    </section>
+
+    <!-- ===================== PART 2: TROUBLESHOOTING ===================== -->
+    <section class="view" id="view-carfix">
+      <div class="view-head"><div><div class="eyebrow">Part 2 · Troubleshooting</div><h1>If the car does not obey</h1><p class="lede">Check one thing at a time. Keep the wheels in the air while you test.</p></div></div>
+      <div class="grid g2" id="carFixList"></div>
+    </section>
+
   </div>
   <nav class="tabbar" id="tabbar" aria-label="Sections">
     <button type="button" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Home</span></button>
@@ -715,6 +931,12 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       <button type="button" data-view="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Learn the Parts<small>Encoder, touch, NFC, Bluetooth, ESP-NOW</small></span></button>
       <button type="button" data-view="exam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 3z"/><path d="M10 9.5a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.7M12 15h.01"/></svg><span>Quick Revision<small>Questions with answers</small></span></button>
       <button type="button" data-view="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress<small>Steps, real-Dial checks, reset</small></span></button>
+      <div class="sheet-sec">Part 2 · Car link</div>
+      <button type="button" data-view="car"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="9" width="16" height="8" rx="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M9 5a5 5 0 0 1 6 0M7 3a8 8 0 0 1 10 0"/></svg><span>Car Link<small>Drive the 4WD car with the Dial</small></span></button>
+      <button type="button" data-view="car3d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span>Car 3D Tutorial<small>Swap the brain, wire, test</small></span></button>
+      <button type="button" data-view="carwiring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5"/><circle cx="4" cy="7" r="2"/><circle cx="20" cy="17" r="2"/></svg><span>Car Wiring<small>ESP32 pin table and diagram</small></span></button>
+      <button type="button" data-view="carcode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg><span>Car Code<small>smart_car_esp32.ino</small></span></button>
+      <button type="button" data-view="carfix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg><span>Troubleshooting<small>When the car does not obey</small></span></button>
       <a class="navlink" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="2"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><path d="M12 4v3M3 10v4M21 10v4"/></svg><span>4WD Robot tutorial<small style="display:block;color:var(--muted);font-size:.8rem;font-weight:400">Project 1: the Arduino car</small></span></a>
     </div>
   </div>
@@ -724,7 +946,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   <div class="modal">
     <h3 id="resetTitle">Reset your Desk Buddy progress?</h3>
     <p class="note">This clears what is saved on this device for the Desk Buddy only:</p>
-    <ul><li>completed 3D steps</li><li>the step the 3D Tutorial was on</li><li>the real-Dial check-list ticks</li></ul>
+    <ul><li>completed 3D steps (Part 1 and Part 2)</li><li>the step each 3D Tutorial was on</li><li>the real-Dial and real-car check-list ticks</li></ul>
     <p class="note">The 4WD robot’s progress is not touched. This can’t be undone.</p>
     <div class="row"><button class="btn sm" id="resetNo" type="button">Cancel</button><button class="btn sm danger" id="resetYes" type="button">Yes, reset progress</button></div>
   </div>
@@ -733,6 +955,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="desk_buddy_engine.js"></script>
+<script src="car_link_engine.js"></script>
 <script>
 (function () {
   'use strict';
@@ -743,16 +966,16 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   // ------------------------------------------------------------------ progress (this device only, own key)
-  var KEY = 'roboBuildLab.deskBuddy.v1', state = { done: {}, cur: 0, checks: {} };
-  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && typeof saved === 'object') { state.done = saved.done || {}; state.cur = +saved.cur || 0; state.checks = saved.checks || {}; } } catch (e) { }
+  var KEY = 'roboBuildLab.deskBuddy.v1', state = { done: {}, cur: 0, checks: {}, carCur: 0 };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && typeof saved === 'object') { state.done = saved.done || {}; state.cur = +saved.cur || 0; state.checks = saved.checks || {}; state.carCur = +saved.carCur || 0; } } catch (e) { }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { } }
   function doneCount() { return STEPS.filter(function (s) { return state.done[s.id]; }).length; }
   function nextOpen() { for (var i = 0; i < N; i++) if (!state.done[STEPS[i].id]) return i + 1; return N; }
 
   // ------------------------------------------------------------------ navigation
-  var VIEWS = ['dashboard', 'build', 'setup', 'modes', 'learn', 'code', 'exam', 'progress'];
-  var TITLES = { dashboard: 'Desk Buddy', build: '3D Tutorial', setup: 'Setup', modes: 'Modes Guide', learn: 'Learn the Parts', code: 'Code', exam: 'Quick Revision', progress: 'Progress' };
-  var MORE = ['learn', 'exam', 'progress'];
+  var VIEWS = ['dashboard', 'build', 'setup', 'modes', 'learn', 'code', 'exam', 'progress', 'car', 'car3d', 'carwiring', 'carcode', 'carfix'];
+  var TITLES = { dashboard: 'Desk Buddy', build: '3D Tutorial', setup: 'Setup', modes: 'Modes Guide', learn: 'Learn the Parts', code: 'Code', exam: 'Quick Revision', progress: 'Progress', car: 'Part 2 · Car Link', car3d: 'Car 3D Tutorial', carwiring: 'Car Wiring', carcode: 'Car Code', carfix: 'Troubleshooting' };
+  var MORE = ['learn', 'exam', 'progress', 'car', 'car3d', 'carwiring', 'carcode', 'carfix'];
   var PHONE = window.matchMedia ? matchMedia('(max-width: 760px), (max-height: 520px) and (pointer: coarse)') : { matches: false };
   var engine = null, currentView = null;
   function show(view, anchor) {
@@ -769,9 +992,11 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
     if (view === 'dashboard') renderDashboard();
     if (view === 'progress') renderProgress();
     if (view === 'code') loadCode();
+    onPart2View(view);
+    if (view === 'progress') renderProgress2();
     try { if (location.hash !== '#' + view) history.replaceState(null, '', '#' + view); } catch (e) { }
     if (anchor) { var el = $(anchor); if (el) setTimeout(function () { el.scrollIntoView({ block: 'start' }); }, 30); }
-    else if (view !== 'build') window.scrollTo(0, 0);
+    else if (view !== 'build' && view !== 'car3d') window.scrollTo(0, 0);
   }
   document.querySelectorAll('#nav button').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-view')); }); });
   document.addEventListener('click', function (e) {
@@ -917,7 +1142,7 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
       ['It works like a Bluetooth keyboard with media keys, so no app is needed.'], 16],
     ['m-remote', '🚗', '4', 'Robot remote (ESP-NOW)', 'Drive the ESP32 4WD car. No Wi-Fi router needed.', [
       ['Turn', 'Steer left / right.'], ['Tap screen', 'Go / stop.'], ['Press', 'Wheels straight.']],
-      ['If the car sends its distance reading back, the Dial shows it.', 'Car-side ESP32 code: coming soon.'], 17],
+      ['If the car sends its distance reading back, the Dial shows it.', 'The car side (ESP32 wiring and code) is Part 2 of this tutorial.'], 17],
     ['m-safe', '🔒', '5', 'Safe cracker game', 'Find the secret code: 3 numbers from 0 to 39.', [
       ['Turn slowly', 'Listen: the beep gets higher near the right number, and the ring glows orange, then green.'], ['Press', 'Lock in that number.'], ['All 3 found', 'The safe opens 🎉']],
       ['Tip: turn one click at a time near the fast clicks.'], 18],
@@ -1064,15 +1289,258 @@ details.grown summary { cursor: pointer; color: var(--ink); font-weight: 600; fo
   $('resetNo').addEventListener('click', function () { $('resetModal').classList.remove('on'); });
   $('resetModal').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('on'); });
   $('resetYes').addEventListener('click', function () {
-    state = { done: {}, cur: 0, checks: {} }; save(); $('resetModal').classList.remove('on');
+    state = { done: {}, cur: 0, checks: {}, carCur: 0 }; save(); $('resetModal').classList.remove('on');
     if (engine) engine.go(0); renderProgress();
   });
+
+
+  // ================================================================== PART 2 · CAR LINK
+  var CE = window.CarLinkEngine, CSTEPS = CE ? CE.STEPS : [], CN = CSTEPS.length, carEngine = null;
+  function carDone() { return CSTEPS.filter(function (s) { return state.done[s.id]; }).length; }
+  function carNextOpen() { for (var i = 0; i < CN; i++) if (!state.done[CSTEPS[i].id]) return i + 1; return CN; }
+  function openCarStep(n) { state.carCur = n; save(); show('car3d'); if (carEngine) carEngine.go(n); }
+  document.addEventListener('click', function (e) { var t = e.target.closest('[data-cstep]'); if (t) openCarStep(+t.getAttribute('data-cstep')); });
+  $('carContinue').addEventListener('click', function () { openCarStep(carDone() ? carNextOpen() : (state.carCur || 0)); });
+
+  // ---------- how the link works ----------
+  var CAR_LESSONS = [
+    ['cl-espnow', 'ESP-NOW: no router needed', 'The Dial and the car are both ESP32 chips. ESP-NOW lets one send small messages straight to the other, about 10 times a second.', '<p>Normal Wi-Fi needs a router in the middle. ESP-NOW does not, so it works in a park or a classroom with no internet. Each message is tiny and arrives in a few milliseconds.</p>'],
+    ['cl-msg', 'The two messages', 'The Dial says: “steer this much, at this speed, go or stop”. The car answers: “the nearest thing is this many cm ahead”.', '<p>Dial → car: <code>CarCmd {\'D\',\'B\', steer −100..100, speed 0..100, go}</code>. Car → Dial: <code>CarStatus {\'C\',\'R\', distCm}</code>. The two letters at the start are a password-like “magic” check, so random radio noise is ignored. Both sketches must use exactly the same message layout.</p>'],
+    ['cl-channel', 'Finding the Dial’s channel', 'Wi-Fi has channels 1 to 13. The car tries each one until it hears the Dial.', '<p>If the Dial is on your home Wi-Fi, it sits on the router’s channel. If not, it uses its own. The car hops to a new channel every 0.25 s while it says “searching ch” in the Serial Monitor. Once it hears the Dial it stays there and says “DIAL ch”.</p>'],
+    ['cl-failsafe', 'Failsafe: stop when the Dial goes quiet', 'If no message arrives for 0.6 seconds, the car stops by itself.', '<p>The Dial battery can die, or you can walk out of range. The car never keeps driving blind: after 0.6 s with no message it stops and starts searching again.</p>'],
+    ['cl-brake', 'Auto-brake and slow-down', 'The Eyes keep measuring. Closer than 45 cm: slower. Closer than 22 cm: it will not drive.', '<p>Two readings in a row under 22 cm count as a real obstacle (one bad echo is ignored). The car then stops, whatever the Dial says. Move the box or lift the car to drive on.</p>'],
+    ['cl-eyes', 'The Eyes look where you steer', 'Turn the knob right and the servo turns the sensor a bit to the right.', '<p>The sketch moves the servo by half the steering amount (<code>STEER_LOOK = 0.5</code>), so the sensor looks a little into the turn and measures what the car is about to meet.</p>'],
+    ['cl-speed', 'Speed and steering', 'Speed comes from REMOTE_SPEED in the Dial’s config.h (70% by default). Steering slows one side.', '<p>Left side = speed + speed × steer, right side = speed − speed × steer. At full steer one side stops and the car turns sharply. TT motors stall at low power, so the sketch never goes below a minimum speed.</p>'],
+    ['cl-auto', 'No Dial? Drive alone', 'Set AUTO_WHEN_ALONE = true and the car drives itself when it hears no Dial.', '<p>It then behaves like the Part 1 Uno robot: drive, slow down, back up, look right and left, turn to the free side. As soon as the Dial is heard again, the Dial is in charge.</p>'],
+    ['cl-divider', 'Voltage divider (1 kΩ + 2 kΩ)', 'Two resistors in a row share the voltage. The point between them gets two-thirds of 5 V: about 3.3 V.', '<p>V<sub>out</sub> = 5 V × 2 kΩ ÷ (1 kΩ + 2 kΩ) = 3.33 V. The Echo pin gives 5 V pulses, but ESP32 pins are 3.3 V pins. The divider makes the pulse safe, and the ESP32 still reads it as HIGH.</p>'],
+    ['cl-ground', 'Common ground', 'Every part must share the same GND, or a “HIGH” from the ESP32 means nothing to the L298N.', '<p>A voltage is always measured between two points. If the ESP32’s 0 V and the L298N’s 0 V are not joined, the signals float and the motors twitch or do nothing. Join battery −, L298N GND and ESP32 GND.</p>'],
+    ['cl-broadcast', 'Broadcast: any Dial, any car', 'The Dial shouts its messages to everyone nearby. Any car that hears it will obey.', '<p>That keeps setup easy (no MAC addresses to copy). At home with one car it is perfect. In a class with many cars, switch them on one at a time.</p>']
+  ];
+  $('carLearn').innerHTML = CAR_LESSONS.map(function (l) { return '<article class="card" id="lesson-' + l[0] + '" style="scroll-margin-top:70px"><h3>' + esc(l[1]) + '</h3><p class="simple" style="margin:10px 0">' + esc(l[2]) + '</p><div class="deep">' + l[3] + '</div></article>'; }).join('');
+
+  // ---------- wiring table ----------
+  var PIN_ROWS = [
+    ['L298N ENA', 'ESP32 GPIO 25', 'ORANGE', 'Left motors speed (PWM). Jumper cap stays off.'],
+    ['L298N IN1', 'ESP32 GPIO 26', 'YELLOW', 'Left motors direction.'],
+    ['L298N IN2', 'ESP32 GPIO 27', 'GREEN', 'Left motors direction.'],
+    ['L298N IN3', 'ESP32 GPIO 16', 'BLUE', 'Right motors direction.'],
+    ['L298N IN4', 'ESP32 GPIO 17', 'PURPLE', 'Right motors direction.'],
+    ['L298N ENB', 'ESP32 GPIO 33', 'WHITE', 'Right motors speed (PWM). Jumper cap stays off.'],
+    ['HC-SR04 VCC', 'L298N 5V', 'RED', 'The sensor needs 5 V.'],
+    ['HC-SR04 GND', 'GND', 'BLACK', 'Common ground.'],
+    ['HC-SR04 Trig', 'ESP32 GPIO 18', 'CYAN', 'Starts a ping. 3.3 V is enough.'],
+    ['HC-SR04 Echo', '1 kΩ → ESP32 GPIO 19', 'PINK', 'Top half of the divider.'],
+    ['ESP32 GPIO 19', '2 kΩ → GND', 'PINK', 'Bottom half: 5 V becomes about 3.3 V.'],
+    ['MG90S brown', 'GND', 'BROWN', 'Servo ground.'],
+    ['MG90S red', 'L298N 5V', 'RED', 'Servo power.'],
+    ['MG90S orange', 'ESP32 GPIO 23', 'ORANGE', 'Servo angle signal.'],
+    ['Battery +', 'switch → L298N 12V', 'RED', 'Same as Part 1.'],
+    ['Battery −', 'L298N GND', 'BLACK', 'Same as Part 1.'],
+    ['L298N 5V', 'ESP32 VIN', 'RED', 'Powers the ESP32. 5V jumper stays on.'],
+    ['L298N GND', 'ESP32 GND', 'BLACK', 'Common ground: all GNDs joined.']
+  ];
+  $('carPinRows').innerHTML = PIN_ROWS.map(function (r) { return '<tr><td><b>' + esc(r[0]) + '</b></td><td>' + esc(r[1]) + '</td><td><span class="swatch" style="background:' + CE.COLORS[r[2]] + '"></span> ' + CE.COLOR_NAMES[r[2]] + '</td><td class="muted">' + esc(r[3]) + '</td></tr>'; }).join('');
+
+  // ---------- troubleshooting ----------
+  var FIX = [
+    ['Dial says “car: not heard”', ['Is the car battery ON and the Dial in Remote mode?', 'Open the Serial Monitor (115200): it should say “searching ch …”. Nothing at all? The sketch is not running: upload again.', 'Bring the Dial closer. Wait 2–3 seconds for the channel search.', 'Both sketches must be the latest versions (same message layout).']],
+    ['The car goes the wrong way', ['Wheels-in-the-air test: one side spins backwards? Flip LEFT_REVERSED or RIGHT_REVERSED in the car sketch and upload again.', 'Both sides backwards? Flip both.']],
+    ['Steering is reversed', ['Turning right steers left? Set KNOB_REVERSE to 1 in the Dial’s config.h and upload the Dial again.']],
+    ['ESP32 restarts when the motors start', ['The battery voltage dips when the motors start. Charge the 18650 cells.', 'Add a 5 V 3 A buck converter (₹80–250) from the battery to ESP32 VIN, instead of the L298N 5V.', 'Check the common ground wire is tight.']],
+    ['Distance shows “-- cm” all the time', ['Check Trig on GPIO 18 and the Echo divider on GPIO 19.', 'Check VCC on L298N 5V and GND joined to the others.', 'Nothing in front for 4 m also shows “--”.']],
+    ['The car will not drive forward', ['Something is closer than 22 cm in front (auto-brake). Look at the distance on the Dial.', 'Is GO on? The Dial screen should say GO, not STOP.']],
+    ['The car stops every few seconds', ['That is the failsafe: messages are getting lost. Bring the Dial closer and keep metal away from the ESP32 antenna.']],
+    ['Upload fails', ['Use a data cable. Pick the right port.', 'Hold the BOOT button while it says “Connecting…”.', 'Set Upload Speed to 115200.', 'Board must be “ESP32 Dev Module”, package esp32 by Espressif 3.x.']],
+    ['Eyes are crooked or shake', ['Change SERVO_CENTER (try 85 or 95).', 'Shaking: the battery is low, or the servo power wire is loose.']]
+  ];
+  $('carFixList').innerHTML = FIX.map(function (f) { return '<article class="card"><h3>' + esc(f[0]) + '</h3><ul class="ticks" style="margin-top:8px">' + f[1].map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></article>'; }).join('');
+
+  // ---------- car code ----------
+  var CAR_FILE = ['desk-buddy/smart_car_esp32.ino', 'smart_car_esp32.ino', 'The ESP32 car sketch: ESP-NOW link, driving, auto-brake, failsafe.'];
+  var carCodeText = '', carCodeLoaded = false;
+  $('carCodeFiles').innerHTML = '<div class="card codefile"><div class="fhead"><div class="grow"><h3>' + esc(CAR_FILE[1]) + '</h3><p class="note">' + esc(CAR_FILE[2]) + '</p></div><span class="chip" id="carLines">…</span><button class="btn sm" type="button" id="carCopy">Copy</button><a class="btn sm ghost" href="' + CAR_FILE[0] + '" download="' + CAR_FILE[1] + '">Download</a></div><pre id="carPre">Loading…</pre></div>';
+  function loadCarCode() {
+    if (carCodeLoaded) return; carCodeLoaded = true;
+    var p = window.fetch ? fetch(CAR_FILE[0], { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }) : Promise.reject(new Error('no fetch'));
+    p.then(function (t) { carCodeText = t; $('carPre').innerHTML = hl(t); $('carLines').textContent = t.split('\n').length + ' lines'; })
+      .catch(function (err) {
+        carCodeLoaded = false; $('carLines').textContent = 'not loaded';
+        $('carPre').innerHTML = '<div class="warnbox" style="font-family:var(--body);white-space:normal">' + (location.protocol === 'file:' ? 'This page was opened as a file, so the browser blocks reading <code>' + esc(CAR_FILE[0]) + '</code>. Serve the folder (for example <code>python -m http.server</code>) or open the file from the <code>desk-buddy</code> folder.' : 'Could not load <code>' + esc(CAR_FILE[0]) + '</code> (' + esc(err.message) + '). Try the Download button, or reload the page.') + '</div>';
+      });
+  }
+  $('carCopy').addEventListener('click', function () { if (carCodeText) copyText(this, carCodeText); else { var b = this; b.textContent = 'Not loaded yet'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); } });
+
+  // ---------- 3D (own stage, same look as Part 1) ----------
+  function ensureCar() {
+    if (carEngine) return;
+    if (!CE || !window.THREE || !THREE.OrbitControls) { $('cLoading').innerHTML = '<div>3D could not load. Check the internet connection and reload.</div>'; return; }
+    var fonts = document.fonts && document.fonts.load ? Promise.race([Promise.all([document.fonts.load('700 40px "JetBrains Mono"'), document.fonts.load('700 40px "Chakra Petch"')]), new Promise(function (r) { setTimeout(r, 2500); })]) : Promise.resolve();
+    fonts.then(function () {
+      if (carEngine) return;
+      var startAt = state.carCur || 0;
+      try { carEngine = CE.create({ canvas: $('cScene'), onStep: onCarStep, onSim: onCarSim }); }
+      catch (err) { $('cLoading').innerHTML = '<div>This device can’t show 3D (' + esc(err.message) + ').</div>'; return; }
+      $('cLoading').style.display = 'none';
+      if (PHONE.matches) cSetDetails(false);
+      carEngine.go(startAt);
+      cUpdateInset();
+      carEngine.setActive(currentView === 'car3d');
+    });
+  }
+  function onCarSim(m) {
+    $('cLinkStatText').textContent = !m.dialOn ? 'Dial off · car stops' : !m.linked ? 'Link: car not heard' : 'Link OK · ' + (m.braking ? 'BRAKE' : m.go ? 'GO' : 'STOP') + ' · ' + (m.dist >= 999 ? '--' : m.dist) + ' cm';
+    $('cLinkStat').classList.toggle('shift', !m.linked);
+  }
+  function onCarStep(n, s) {
+    state.carCur = n; save();
+    var fl = $('cFlash'); fl.classList.add('on'); setTimeout(function () { fl.classList.remove('on'); }, 30);
+    $('cNum').textContent = $('cRestoreNum').textContent = n + ' / ' + CN;
+    $('cStepStatText').textContent = n === 0 ? 'Part 2 · Overview' : 'Part 2 · Step ' + n + ' of ' + CN + (state.done[s.id] ? ' · done' : '');
+    $('cPrevBtn').disabled = n === 0;
+    $('cNextBtn').textContent = n === 0 ? 'Start ▶' : n === CN ? 'Finish ✓' : 'Next ▶';
+    if (!s) {
+      $('cPhase').textContent = 'Part 2 · Overview'; $('cTitle').textContent = 'Drive the car with the Dial';
+      $('cKid').textContent = 'The Dial on the desk drives the 4WD car by radio. Try the buttons at the top: Steer, GO / STOP, Dial on/off.';
+      $('cDoText').textContent = 'Press Start.'; $('cWires').innerHTML = ''; $('cWarn').style.display = 'none';
+      $('cGrown').innerHTML = 'The car in 3D follows the same rules as the real sketch: it stops 0.6 s after the Dial goes quiet, slows below 45 cm and will not drive closer than 22 cm.';
+      $('cLearnBtn').style.display = 'none'; $('cDoneBtn').style.display = 'none';
+    } else {
+      $('cPhase').textContent = 'Part 2 · ' + s.phase; $('cTitle').textContent = s.title; $('cKid').textContent = s.kid;
+      var d = $('cDo'); d.style.animation = 'none'; void d.offsetWidth; d.style.animation = '';
+      $('cDoText').textContent = s.doNow;
+      $('cWires').innerHTML = (s.wires || []).map(function (w) { return '<span class="wirechip"><i style="background:' + CE.COLORS[w[2]] + '"></i>' + CE.COLOR_NAMES[w[2]] + ' wire</span>'; }).join('');
+      $('cWarn').style.display = s.warn ? '' : 'none';
+      $('cWarn').textContent = s.n === 6 ? 'Do not skip the divider. 5 V on GPIO 19 can damage the ESP32.' : 'Unplug the USB before you switch the battery on.';
+      $('cGrown').innerHTML = s.grown;
+      $('cLearnBtn').style.display = s.learn ? '' : 'none'; $('cLearnBtn').onclick = function () { show('car', 'lesson-' + s.learn); };
+      $('cDoneBtn').style.display = '';
+      $('cDoneBtn').textContent = state.done[s.id] ? '↺ Mark not done' : '✓ Mark complete';
+    }
+    var c = $('cDots'); if (!c.children.length) CSTEPS.forEach(function (st) { var i = document.createElement('i'); i.title = st.n + '. ' + st.title; i.addEventListener('click', function () { carEngine && carEngine.go(st.n); }); c.appendChild(i); });
+    Array.prototype.forEach.call(c.children, function (el, i) { el.className = (state.done[CSTEPS[i].id] ? 'done ' : '') + (i + 1 === n ? 'now' : ''); });
+  }
+  $('cNextBtn').addEventListener('click', function () {
+    if (!carEngine) return; var n = carEngine.cur();
+    if (n > 0) { state.done[CSTEPS[n - 1].id] = true; save(); }
+    if (n < CN) carEngine.next(); else { onCarStep(n, CSTEPS[n - 1]); show('progress', 'part2Progress'); }
+  });
+  $('cPrevBtn').addEventListener('click', function () { carEngine && carEngine.prev(); });
+  $('cDoneBtn').addEventListener('click', function () { if (!carEngine) return; var n = carEngine.cur(); if (!n) return; var id = CSTEPS[n - 1].id; state.done[id] = !state.done[id]; save(); onCarStep(n, CSTEPS[n - 1]); });
+  $('cResetBtn').addEventListener('click', function () { carEngine && carEngine.resetView(); });
+  document.querySelectorAll('[data-csim]').forEach(function (b) { b.addEventListener('click', function () { if (carEngine) carEngine.input(b.getAttribute('data-csim')); }); });
+  function cSetHidden(h) { $('cStepcard').classList.toggle('gone', h); $('cRestoreWrap').classList.toggle('on', h); cUpdateInset(); (h ? $('cCardRestore') : $('cCardMin')).focus({ preventScroll: true }); }
+  $('cCardMin').addEventListener('click', function () { cSetHidden(true); });
+  $('cCardRestore').addEventListener('click', function () { cSetHidden(false); });
+  function cSetDetails(on) { $('cStepcard').classList.toggle('min', !on); $('cMinBtn').textContent = on ? 'Hide details' : 'Show details'; }
+  $('cMinBtn').addEventListener('click', function () { cSetDetails($('cStepcard').classList.contains('min')); });
+  $('cStepcard').addEventListener('click', function (e) { if (e.target === $('cTitle') && $('cStepcard').classList.contains('min')) cSetDetails(true); });
+  (function () {
+    var h = $('cSheetHandle'), y0 = null;
+    h.addEventListener('pointerdown', function (e) { y0 = e.clientY; try { h.setPointerCapture(e.pointerId); } catch (err) { } });
+    h.addEventListener('pointerup', function (e) {
+      if (y0 === null) return; var dy = e.clientY - y0, min = $('cStepcard').classList.contains('min'); y0 = null;
+      if (dy < -25) cSetDetails(true); else if (dy > 25) { if (min) cSetHidden(true); else cSetDetails(false); } else cSetDetails(min);
+    });
+    h.addEventListener('pointercancel', function () { y0 = null; });
+  })();
+  function cUpdateInset() {
+    if (!carEngine) return;
+    var card = $('cStepcard'), st = $('cStage');
+    if (!PHONE.matches || currentView !== 'car3d' || card.classList.contains('gone')) { carEngine.setViewInset(0, 0); return; }
+    var c = card.getBoundingClientRect(), s = st.getBoundingClientRect();
+    if (c.height > s.height * 0.6 && c.right < s.right - 40) carEngine.setViewInset(0, c.right - s.left);
+    else carEngine.setViewInset(Math.max(0, s.bottom - c.top), 0);
+  }
+  if (window.ResizeObserver) { new ResizeObserver(cUpdateInset).observe($('cStepcard')); new ResizeObserver(cUpdateInset).observe($('cStage')); }
+  if (PHONE.addEventListener) PHONE.addEventListener('change', cUpdateInset);
+  function cIsFs() { return !!(document.fullscreenElement || $('cStage').classList.contains('fs')); }
+  function cToggleFs() {
+    var st = $('cStage');
+    if (cIsFs()) { if (document.fullscreenElement) document.exitFullscreen().catch(function () { }); st.classList.remove('fs'); }
+    else { st.classList.add('fs'); if (st.requestFullscreen) st.requestFullscreen().catch(function () { }); }
+    setTimeout(cFsLabel, 60);
+  }
+  function cFsLabel() { var on = cIsFs(); $('cFsText').textContent = on ? 'Exit fullscreen' : 'Fullscreen'; $('cFsBtn').classList.toggle('on', on); carEngine && carEngine.resize(); }
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) $('cStage').classList.remove('fs'); cFsLabel(); });
+  $('cFsBtn').addEventListener('click', cToggleFs);
+  window.addEventListener('keydown', function (e) {
+    if (currentView !== 'car3d' || !carEngine || /input|textarea|select/i.test(e.target.tagName || '') || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key.toLowerCase();
+    if (e.key === 'ArrowRight') $('cNextBtn').click();
+    else if (e.key === 'ArrowLeft') carEngine.prev();
+    else if (k === 'f') cToggleFs();
+    else if (k === 'r') carEngine.resetView();
+    else if (k === 'h') cSetHidden(!$('cStepcard').classList.contains('gone'));
+    else if (k === 'a') carEngine.input('left');
+    else if (k === 'd') carEngine.input('right');
+    else if (k === 's') carEngine.input('press');
+    else if (k === 't') carEngine.input('tap');
+  });
+  function onPart2View(view) {
+    if (view === 'car3d') ensureCar();
+    if (carEngine) carEngine.setActive(view === 'car3d');
+    if (view === 'car3d') setTimeout(cUpdateInset, 0);
+    if (view === 'carcode') loadCarCode();
+    if (view === 'car') renderCarHome();
+  }
+  function renderCarHome() {
+    var d = carDone(), nx = carNextOpen();
+    $('carCount').textContent = d + ' / ' + CN + ' steps completed';
+    $('carNext').textContent = d === CN ? 'All done. Happy driving!' : 'Next: step ' + nx + ' · ' + CSTEPS[nx - 1].title;
+    $('carBar').style.width = (100 * d / CN) + '%';
+    $('carContinueText').textContent = d ? 'Continue Part 2 in 3D' : 'Start Part 2 in 3D';
+  }
+
+  // ---------- revision + progress for Part 2 ----------
+  var QA2 = [
+    ['Why swap the Arduino Uno for an ESP32?', 'The ESP32 has a Wi-Fi radio, so it can use ESP-NOW to talk to the Dial. The Uno has no radio.'],
+    ['What is ESP-NOW?', 'A way for ESP32 boards to send small messages straight to each other, with no Wi-Fi router. Here about 10 messages a second.'],
+    ['What does the Dial send, and what does the car send back?', 'The Dial sends steer (−100 to 100), speed (0 to 100) and go/stop. The car sends back its distance reading in cm.'],
+    ['Why does the Echo wire need a voltage divider?', 'Echo gives 5 V pulses, but ESP32 pins work at 3.3 V. The 1 kΩ + 2 kΩ divider brings 5 V down to about 3.3 V.'],
+    ['Work out the divider output.', '5 V × 2 kΩ ÷ (1 kΩ + 2 kΩ) = 5 × 2 ÷ 3 ≈ 3.3 V.'],
+    ['Why must all the GNDs be joined?', 'Voltages are measured from GND. If the ESP32 and the L298N do not share GND, the L298N cannot tell HIGH from LOW.'],
+    ['Where does the ESP32 get its power on the car?', 'From the L298N 5 V output into the ESP32 VIN pin, with the 5V jumper on the L298N.'],
+    ['What is the failsafe?', 'If the car hears no message for 0.6 s, it stops by itself and starts searching for the Dial again.'],
+    ['When does the car brake by itself?', 'When two readings in a row are closer than 22 cm. Below 45 cm it only slows down.'],
+    ['How does the car find the Dial’s Wi-Fi channel?', 'It hops through channels 1 to 13, one every 0.25 s, until it hears the Dial. Then it stays on that channel.'],
+    ['One side of the car spins backwards. What do you change?', 'Flip LEFT_REVERSED or RIGHT_REVERSED in the car sketch and upload again.'],
+    ['What does AUTO_WHEN_ALONE = true do?', 'With no Dial heard, the car drives by itself and avoids obstacles, like the Part 1 Uno robot.'],
+    ['Which board do you choose to upload the car sketch?', '“ESP32 Dev Module” from the esp32 by Espressif Systems package, version 3.x.'],
+    ['Can two Dials drive the same car?', 'Yes. The Dial broadcasts, so any car nearby obeys any Dial. Fine at home; in a class switch cars on one at a time.']
+  ];
+  $('qaList2').innerHTML = QA2.map(function (q, i) { return '<div class="qa" id="qb' + i + '"><button type="button" aria-expanded="false"><span class="q-ico">C' + (i + 1) + '</span>' + esc(q[0]) + '</button><div class="a">' + esc(q[1]) + '</div></div>'; }).join('');
+  $('qaList2').addEventListener('click', function (e) { var b = e.target.closest('.qa button'); if (b) { var o = b.parentNode.classList.toggle('open'); b.setAttribute('aria-expanded', o); } });
+  var CHECKS2 = [
+    ['car-esp', 'ESP32 in, Uno out'], ['car-divider', 'Echo divider fitted (1 kΩ + 2 kΩ)'], ['car-ground', 'Common ground checked'], ['car-upload', 'Car sketch uploaded, Serial Monitor says “searching ch”'],
+    ['car-air', 'Wheels-in-the-air test: all four spin forward'], ['car-link', 'Dial shows “cm ahead”'], ['car-drive', 'Drove the car with the knob'], ['car-failsafe', 'Failsafe works (Dial off → car stops)'], ['car-brake', 'Auto-brake works (stops near a box)']
+  ];
+  function renderProgress2() {
+    var d = carDone();
+    $('progTitle2').textContent = 'Part 2: ' + d + ' / ' + CN + ' steps completed';
+    $('checkList2').innerHTML = CHECKS2.map(function (c) { return '<label class="checkrow"><input type="checkbox" data-check="' + c[0] + '"' + (state.checks[c[0]] ? ' checked' : '') + '><span>' + esc(c[1]) + '</span></label>'; }).join('');
+    var phases = []; CSTEPS.forEach(function (s) { if (phases.indexOf(s.phase) < 0) phases.push(s.phase); });
+    $('progSteps2').innerHTML = phases.map(function (ph) {
+      return '<div class="phase-block"><h3>' + esc(ph) + '</h3><div class="steplist">' + CSTEPS.filter(function (s) { return s.phase === ph; }).map(function (s) {
+        var done = !!state.done[s.id];
+        return '<div class="stepitem' + (done ? ' done' : '') + (s.n === state.carCur ? ' now' : '') + '" role="button" tabindex="0" data-cstep="' + s.n + '"><span class="num">' + (done ? '✓' : s.n) + '</span><span><span class="t">' + esc(s.title) + '</span><br><span class="s">' + esc(s.doNow) + '</span></span><span class="chip' + (done ? ' ok' : '') + '">' + (done ? 'done' : 'open') + '</span></div>';
+      }).join('') + '</div></div>';
+    }).join('');
+  }
+  $('checkList2').addEventListener('change', function (e) { var k = e.target.dataset.check; if (!k) return; state.checks[k] = e.target.checked; save(); });
+  $('progSteps2').addEventListener('keydown', function (e) { var s = e.target.closest('[data-cstep]'); if (s && e.key === 'Enter') openCarStep(+s.dataset.cstep); });
+  $('resetYes').addEventListener('click', function () { state.carCur = 0; save(); if (carEngine) carEngine.go(0); renderProgress2(); });
+
+  // Remote mode card: the car side is built now
+  (function () {
+    var card = $('m-remote'); if (!card) return;
+    card.insertAdjacentHTML('beforeend', '<div class="projswitch"><button class="btn sm primary" type="button" data-go="car">Part 2: wire and drive the car →</button><span class="note">ESP32 car code, wiring and tests.</span></div>');
+  })();
 
   // ------------------------------------------------------------------ start
   updateMini();
   var h = (location.hash || '').replace('#', '');
   show(VIEWS.indexOf(h) >= 0 ? h : 'dashboard');
-  window.__deskBuddy = { show: show, openStep: openStep, engine: function () { return engine; }, state: function () { return state; } };
+  window.__deskBuddy = { show: show, openStep: openStep, engine: function () { return engine; }, car: function () { return carEngine; }, state: function () { return state; } };
 })();
 </script>
 </body>

@@ -87,7 +87,7 @@
     { phase: 'Modes', title: 'Mode 4: Robot remote (ESP-NOW)', screen: 'remote', cable: true, focus: [0, 4.4, 1.5], dist: 22, view: 'top',
       kid: 'Drive your ESP32 robot car with the knob. No Wi-Fi router needed.',
       doNow: 'Turn to steer. Tap the screen to go or stop. Press to drive straight.',
-      grown: 'ESP-NOW sends tiny messages straight from one ESP32 to another. The car’s distance reading shows here if the car sends it back. The car-side code is coming soon.', learn: 'espnow' },
+      grown: 'ESP-NOW sends tiny messages straight from one ESP32 to another. The car sends its distance back, and it shows here as “cm ahead”. Part 2 of this tutorial wires and codes the car.', learn: 'espnow' },
     { phase: 'Modes', title: 'Mode 5: Safe cracker', screen: 'safe', cable: true, focus: [0, 4.4, 1.5], dist: 22, view: 'top',
       kid: 'Find the secret 3-number code, like a bank safe.',
       doNow: 'Turn slowly. When the clicks get faster, you are close. Press to lock in a number.',
@@ -461,7 +461,7 @@
       c.beginPath(); c.moveTo(0, -78); c.lineTo(46, -16); c.lineTo(18, -16); c.lineTo(18, 50); c.lineTo(-18, 50); c.lineTo(-18, -16); c.lineTo(-46, -16); c.closePath(); c.fill(); c.restore();
       txt(c, r.go ? 'GO' : 'STOP', C, 316, font(700, 64), r.go ? '#34d399' : '#f87171');
       txt(c, 'steer ' + (r.steer > 0 ? '+' : '') + r.steer, C, 370, font(600, 26, MONO), '#e3ecf8');
-      txt(c, 'car: -- cm (no car yet)', C, 410, font(600, 20, MONO), '#5d6e8a');
+      txt(c, 'car: not heard', C, 410, font(600, 20, MONO), '#5d6e8a');
       txt(c, 'ESP-NOW', C, 84, font(700, 22, MONO), '#3b82f6');
     }
     function drawSafe(c, now) {

@@ -23,7 +23,8 @@ Turn an M5Stack Dial into a desk gadget: animated eyes, a Pomodoro timer, a Blue
 - **Learn the Parts:** rotary encoder, capacitive touch, NFC, RTC, BLE HID, ESP-NOW, Wi-Fi time (NTP), weather API.
 - **Code:** loads `desk-buddy/desk_buddy_dial.ino` and `desk-buddy/config.h`, with copy and download buttons.
 - **Quick Revision and Progress:** questions, and its own progress saved in your browser.
+- **Part 2 · Car link:** drive the 4WD car with the Dial. Swap the Uno for an ESP32, wire it (pin table + diagram, Echo voltage divider, common ground), upload `desk-buddy/smart_car_esp32.ino`, and test the link, failsafe and auto-brake in a 3D simulation of the Dial and the car.
 
 Open it here: https://ommaharana6789.github.io/robobuild-lab/ (Desk Buddy: `desk-buddy.html`)
 
-It's a static site: `index.html` + `robot_engine.js` and `desk-buddy.html` + `desk_buddy_engine.js`, with three.js loaded from a CDN. To run it locally, serve the folder (e.g. `python -m http.server`) and open `index.html`. The Desk Buddy Code page needs a server to load the sketch files.
+It's a static site: `index.html` + `robot_engine.js` and `desk-buddy.html` + `desk_buddy_engine.js` + `car_link_engine.js`, with three.js loaded from a CDN. To run it locally, serve the folder (e.g. `python -m http.server`) and open `index.html`. The Desk Buddy Code page needs a server to load the sketch files.
